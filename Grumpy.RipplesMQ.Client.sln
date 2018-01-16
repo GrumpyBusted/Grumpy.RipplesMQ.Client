@@ -1,0 +1,70 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2020
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client", "Grumpy.RipplesMQ.Client\Grumpy.RipplesMQ.Client.csproj", "{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F48665CC-BF4E-4034-B6AB-A111BE5B507B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3D33904A-9F84-4837-AE5F-A209F45E22FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.TestTools", "Grumpy.RipplesMQ.Client.TestTools\Grumpy.RipplesMQ.Client.TestTools.csproj", "{4529BAEE-FE7F-4E04-B9F1-9CA9018753BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.UnitTests", "Grumpy.RipplesMQ.Client.UnitTests\Grumpy.RipplesMQ.Client.UnitTests.csproj", "{A0CCF434-D35F-463C-B32B-F7F1F8970A88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.IntegrationTests", "Grumpy.RipplesMQ.Client.IntegrationTests\Grumpy.RipplesMQ.Client.IntegrationTests.csproj", "{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.TestTools.UnitTests", "Grumpy.RipplesMQ.Client.TestTools.UnitTests\Grumpy.RipplesMQ.Client.TestTools.UnitTests.csproj", "{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Nuget", "Grumpy.RipplesMQ.Nuget\Grumpy.RipplesMQ.Nuget.csproj", "{29FB720E-127C-4B6C-9D68-8E24853A25FB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4529BAEE-FE7F-4E04-B9F1-9CA9018753BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4529BAEE-FE7F-4E04-B9F1-9CA9018753BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4529BAEE-FE7F-4E04-B9F1-9CA9018753BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4529BAEE-FE7F-4E04-B9F1-9CA9018753BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0CCF434-D35F-463C-B32B-F7F1F8970A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0CCF434-D35F-463C-B32B-F7F1F8970A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0CCF434-D35F-463C-B32B-F7F1F8970A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0CCF434-D35F-463C-B32B-F7F1F8970A88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29FB720E-127C-4B6C-9D68-8E24853A25FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29FB720E-127C-4B6C-9D68-8E24853A25FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29FB720E-127C-4B6C-9D68-8E24853A25FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29FB720E-127C-4B6C-9D68-8E24853A25FB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A0CCF434-D35F-463C-B32B-F7F1F8970A88} = {3D33904A-9F84-4837-AE5F-A209F45E22FF}
+		{B58E8E1B-562A-4A70-A6EE-C95E9612D1DB} = {3D33904A-9F84-4837-AE5F-A209F45E22FF}
+		{5B917B41-1CFE-4A74-A5F7-AD483CC08C41} = {3D33904A-9F84-4837-AE5F-A209F45E22FF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {24C62F0E-EE77-4634-90FE-E0D68ABB3112}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>Grumpy.RipplesMQ.Client</id>
+        <version>0</version>
+        <title>Grumpy.RipplesMQ.Client</title>
+        <description>Client library for using the RipplesMQ Message Broker Server.</description>
+        <summary>
+            Client library for using the RipplesMQ Message Broker Server.
+        </summary>
+        <tags>MSMQ MS Queue Bus Message MessageBroker Broker Publish Subscribe Request Response</tags>
+        <authors>Anders Busted-Janum</authors>
+        <owners>GrumpyBusted</owners>
+        <projectUrl>https://github.com/GrumpyBusted/Grumpy.RipplesMQ.Client</projectUrl>
+        <licenseUrl>https://github.com/GrumpyBusted/Grumpy.RipplesMQ.Client/blob/master/LICENSE</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <language>en-US</language>
+        <copyright>Copyright © Busted-Janum 2018</copyright>
+        <dependencies>
+            <dependency id="Grumpy.Common" />
+            <dependency id="Grumpy.Common.Json" />
+            <dependency id="Grumpy.MessageQueue" />
+            <dependency id="Grumpy.RipplesMQ.Config" />
+            <dependency id="Grumpy.RipplesMQ.Shared" />
+            <dependency id="NSubstitute" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="Grumpy.RipplesMQ.Client.dll" target="lib\net451" />
+        <file src="Grumpy.RipplesMQ.Client.pdb" target="lib\net451" />
+        <file src="Grumpy.RipplesMQ.Client.TestTools.dll" target="lib\net451" />
+        <file src="Grumpy.RipplesMQ.Client.TestTools.pdb" target="lib\net451" />
+    </files>
+</package>
