@@ -30,7 +30,7 @@ after_test:
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
       bash codecov.sh -f "coverage.xml" -t af07df4f-1e34-455c-94de-76f6b5f6ab64
 after_build:
-  - ps: nuget pack Grumpy.RipplesMQ.Client\bin\Release\Grumpy.RipplesMQ.Client.nuspec -Version $env:APPVEYOR_BUILD_VERSION
+  - ps: nuget pack Grumpy.RipplesMQ.Client.NuGet\bin\Release\Grumpy.RipplesMQ.Client.nuspec -Version $env:APPVEYOR_BUILD_VERSION
 artifacts:
   - path: '**\*.nupkg'
     name: NuGet
