@@ -23,7 +23,7 @@ test:
     only:
       - '**\bin\**\*.UnitTests.dll'
 test_script:
-  - cmd: "\"%USERPROFILE%\\.nuget\\packages\\OpenCover\\4.6.519\\tools\\OpenCover.Console.exe\" -register:user -target:\"%xunit20%\\xunit.console.x86.exe\" -targetargs:\"Grumpy.RipplesMQ.Client.UnitTests\\bin\\Release\\Grumpy.RipplesMQ.Client.UnitTests.dll -noshadow\" -output:\"coverage.xml\" -filter:\"+[Grumpy.RipplesMQ.Client*]* -[Grumpy.RipplesMQ.Client.UnitTests*]*\""
+  - cmd: "\"%USERPROFILE%\\.nuget\\packages\\OpenCover\\4.6.519\\tools\\OpenCover.Console.exe\" -register:user -target:\"%xunit20%\\xunit.console.x86.exe\" -targetargs:\"Grumpy.RipplesMQ.Client.UnitTests\\bin\\Release\\Grumpy.RipplesMQ.Client.UnitTests.dll Grumpy.RipplesMQ.Client.TestTools.UnitTests\\bin\\Release\\Grumpy.RipplesMQ.Client.TestTools.UnitTests.dll -noshadow\" -output:\"coverage.xml\" -filter:\"+[Grumpy.RipplesMQ.Client*]* -[Grumpy.RipplesMQ.Client.UnitTests*|Grumpy.RipplesMQ.Client.TestTools.UnitTests*]*\""
 after_test:
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
