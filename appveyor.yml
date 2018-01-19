@@ -1,0 +1,42 @@
+version: 1.1.{build}
+skip_commits:
+  message: /NO-BUILD/
+  files:
+    - docs/*
+    - 'appveyor.yml'
+    - 'LICENSE'
+    - 'README.md'
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.cs'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+before_build:
+  - ps: nuget restore
+image: Visual Studio 2017
+configuration: Release
+build:
+  parallel: true 
+  verbosity: minimal
+test:
+  assemblies:
+    only:
+      - '**\bin\**\*.UnitTests.dll'
+test_script:
+  - cmd: "\"%USERPROFILE%\\.nuget\\packages\\OpenCover\\4.6.519\\tools\\OpenCover.Console.exe\" -register:user -target:\"%xunit20%\\xunit.console.x86.exe\" -targetargs:\"Grumpy.RipplesMQ.Client.UnitTests\\bin\\Release\\Grumpy.RipplesMQ.Client.UnitTests.dll -noshadow\" -output:\"coverage.xml\" -filter:\"+[Grumpy.RipplesMQ.Client*]* -[Grumpy.RipplesMQ.Client.UnitTests*]*\""
+after_test:
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "coverage.xml" -t af07df4f-1e34-455c-94de-76f6b5f6ab64
+after_build:
+  - ps: nuget pack Grumpy.RipplesMQ.Client\bin\Release\Grumpy.RipplesMQ.Client.nuspec -Version $env:APPVEYOR_BUILD_VERSION
+artifacts:
+  - path: '**\*.nupkg'
+    name: NuGet
+deploy:
+  provider: NuGet
+  api_key:
+    secure: EqocuRN+dPLo43f6XC9SZIry4fYwoAibK7wTAte9Rrbc4Xl/OyWhGo75yv3/Rs+/
+  skip_symbols: false
+  artifact: /.*\.nupkg/

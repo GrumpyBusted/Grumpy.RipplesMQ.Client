@@ -4,7 +4,7 @@
         <id>Grumpy.RipplesMQ.Client</id>
         <version>0</version>
         <title>Grumpy.RipplesMQ.Client</title>
-        <description>Client library for using the RipplesMQ Message Broker Server.</description>
+        <description>Client library for using the RipplesMQ Message Broker Server</description>
         <summary>
             Client library for using the RipplesMQ Message Broker Server.
         </summary>

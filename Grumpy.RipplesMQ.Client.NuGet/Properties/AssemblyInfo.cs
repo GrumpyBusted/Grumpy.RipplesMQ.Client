@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Grumpy.RipplesMQ.Nuget")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("NuGet container references to all projects that should be packaged in the NuGet package")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Anders Busted-Janum")]
 [assembly: AssemblyProduct("Grumpy.RipplesMQ.Nuget")]

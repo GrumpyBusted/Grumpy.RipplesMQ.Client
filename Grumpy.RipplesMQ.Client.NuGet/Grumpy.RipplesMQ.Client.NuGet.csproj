@@ -7,8 +7,8 @@
     <ProjectGuid>{29FB720E-127C-4B6C-9D68-8E24853A25FB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Grumpy.RipplesMQ.Nuget</RootNamespace>
-    <AssemblyName>Grumpy.RipplesMQ.Nuget</AssemblyName>
+    <RootNamespace>Grumpy.RipplesMQ.Client.NuGet</RootNamespace>
+    <AssemblyName>Grumpy.RipplesMQ.Client.NuGet</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

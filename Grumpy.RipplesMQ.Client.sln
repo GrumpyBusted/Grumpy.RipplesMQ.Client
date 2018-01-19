@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		appveyor.yml = appveyor.yml
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -23,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.Int
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.TestTools.UnitTests", "Grumpy.RipplesMQ.Client.TestTools.UnitTests\Grumpy.RipplesMQ.Client.TestTools.UnitTests.csproj", "{5B917B41-1CFE-4A74-A5F7-AD483CC08C41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Nuget", "Grumpy.RipplesMQ.Nuget\Grumpy.RipplesMQ.Nuget.csproj", "{29FB720E-127C-4B6C-9D68-8E24853A25FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grumpy.RipplesMQ.Client.NuGet", "Grumpy.RipplesMQ.Client.NuGet\Grumpy.RipplesMQ.Client.NuGet.csproj", "{29FB720E-127C-4B6C-9D68-8E24853A25FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

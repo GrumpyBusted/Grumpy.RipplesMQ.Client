@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Grumpy.RipplesMQ.Client")]
-[assembly: AssemblyDescription("Client library for using the RipplesMQ Message Broker Server.")]
+[assembly: AssemblyDescription("Client library for using the RipplesMQ Message Broker Server")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Anders Busted-Janum")]
 [assembly: AssemblyProduct("Grumpy.RipplesMQ.Client")]
