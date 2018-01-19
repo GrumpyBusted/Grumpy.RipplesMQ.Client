@@ -18,12 +18,12 @@
         <language>en-US</language>
         <copyright>Copyright © Busted-Janum 2018</copyright>
         <dependencies>
-            <dependency id="Grumpy.Common" />
-            <dependency id="Grumpy.Common.Json" />
-            <dependency id="Grumpy.MessageQueue" />
-            <dependency id="Grumpy.RipplesMQ.Config" />
-            <dependency id="Grumpy.RipplesMQ.Shared" />
-            <dependency id="NSubstitute" />
+            <dependency id="Grumpy.Common" version="1.2.0" />
+            <dependency id="Grumpy.Common.Json" version="1.2.0" />
+            <dependency id="Grumpy.MessageQueue" version="1.2.0" />
+            <dependency id="Grumpy.RipplesMQ.Config" version="1.2.0" />
+            <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.0" />
+            <dependency id="NSubstitute" version="3.1.0" />
         </dependencies>
     </metadata>
     <files>
