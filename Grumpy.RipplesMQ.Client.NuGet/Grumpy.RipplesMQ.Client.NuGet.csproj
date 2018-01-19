@@ -41,5 +41,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grumpy.RipplesMQ.Client.TestTools\Grumpy.RipplesMQ.Client.TestTools.csproj">
+      <Project>{4529baee-fe7f-4e04-b9f1-9ca9018753be}</Project>
+      <Name>Grumpy.RipplesMQ.Client.TestTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Grumpy.RipplesMQ.Client\Grumpy.RipplesMQ.Client.csproj">
+      <Project>{9c3ec058-af17-42ea-ae3f-98a8c3ba4e67}</Project>
+      <Name>Grumpy.RipplesMQ.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
