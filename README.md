@@ -16,7 +16,7 @@ public void Process()
     // Creating the Message Bus
     var messageBus = MessageBusBuilder.Build("MyService");
 
-    // Setup SubscribeHandler to handle a publish message, each message comming on the queue will call MyTopicAHandler
+    // Setup SubscribeHandler to handle a publish message, each message coming on the queue will call MyTopicAHandler
     messageBus.SubscribeHandler<MyDtoA>(new PublishSubscribeConfig { Persistent = false, Topic = "MyTopicA" }, MyTopicAHandler, "MySubscriberName");
 
     // Setup RequestHandler to handle a requests
@@ -31,7 +31,7 @@ public void Process()
     // Request a response from a handler that can response to request name = "MyRequesterB" 
     var message = messageBus.RequestAsync<MyRequestBDto, MyResponseBDto>(new RequestResponseConfig { Name = "MyRequesterB", MillisecondsTimeout = 100 }, new MyRequestBDto);
 
-    // Result of RequestAsync is a Task, to get response get Result from the task. There is also a syncronous version just called Request
+    // Result of RequestAsync is a Task, to get response get Result from the task. There is also a synchronous version just called Request
     var response = message.Result;
 
     messageBus.Dispose();
