@@ -16,7 +16,7 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         /// </summary>
         /// <param name="cancellationToken">Cancellation Token</param>
         /// <param name="syncMode">Synchronous mode</param>
-        void Start(CancellationToken cancellationToken, bool syncMode);
+        void Start(CancellationToken cancellationToken, bool syncMode = false);
 
         /// <summary>
         /// Stop the Message Bus

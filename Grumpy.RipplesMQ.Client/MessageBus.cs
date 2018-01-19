@@ -29,10 +29,10 @@ namespace Grumpy.RipplesMQ.Client
         private TimerTask _handshakeTask;
 
         /// <inheritdoc />
-        public MessageBus(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory)
+        public MessageBus(MessageBusConfig messageBusConfig, IMessageBrokerFactory messageBrokerFactory, IQueueHandlerFactory queueHandlerFactory)
         {
             _messageBusConfig = messageBusConfig;
-            _messageBroker = messageBroker;
+            _messageBroker = messageBrokerFactory.Create(messageBusConfig);
             _queueHandlerFactory = queueHandlerFactory;
 
             _subscribeHandlers = new List<SubscribeHandler>();
@@ -231,6 +231,8 @@ namespace Grumpy.RipplesMQ.Client
 
                     Parallel.ForEach(_subscribeHandlers, subscribeHandler => subscribeHandler.Dispose());
                     Parallel.ForEach(_requestHandlers, requestHandler => requestHandler.Dispose());
+
+                    _messageBroker.Dispose();
 
                     _cancellationTokenSource?.Dispose();
                     _cancellationTokenRegistration.Dispose();

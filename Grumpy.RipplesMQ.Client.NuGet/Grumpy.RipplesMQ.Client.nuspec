@@ -6,9 +6,10 @@
         <title>Grumpy.RipplesMQ.Client</title>
         <description>Client library for using the RipplesMQ Message Broker Server</description>
         <summary>
-            Client library for using the RipplesMQ Message Broker Server.
+            This library makes it easy to use the RipplesMQ Message Broker, both for setting up handlers in services and
+            for using the message broker to publish messages or call requests.
         </summary>
-        <tags>MSMQ MS Queue Bus Message MessageBroker Broker Publish Subscribe Request Response</tags>
+        <tags>ripplesmq ripplesmq-client message-broker message-queue message-bus client-lib api msmq</tags>
         <authors>Anders Busted-Janum</authors>
         <owners>GrumpyBusted</owners>
         <projectUrl>https://github.com/GrumpyBusted/Grumpy.RipplesMQ.Client</projectUrl>

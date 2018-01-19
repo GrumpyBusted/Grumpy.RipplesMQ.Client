@@ -52,7 +52,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             {
                 if (disposing)
                 {
-                    MessageBroker?.Dispose();
+                    MessageBus?.Dispose();
                 }
 
                 _disposed = true;

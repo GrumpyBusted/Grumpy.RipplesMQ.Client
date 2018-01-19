@@ -15,6 +15,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 {
     public class MessageBusTests
     {
+        private readonly IMessageBrokerFactory _messageBrokerFactory;
         private readonly IMessageBroker _messageBroker;
         private readonly MessageBusConfig _messageBusConfig;
         private readonly CancellationToken _cancellationToken;
@@ -29,7 +30,9 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 InstanceName = "1"
             };
 
+            _messageBrokerFactory = Substitute.For<IMessageBrokerFactory>();
             _messageBroker = Substitute.For<IMessageBroker>();
+            _messageBrokerFactory.Create(Arg.Any<MessageBusConfig>()).Returns(_messageBroker);
             _cancellationToken = new CancellationToken();
             _queueHandlerFactory = Substitute.For<IQueueHandlerFactory>();
             _queueHandler = Substitute.For<IQueueHandler>();
@@ -407,7 +410,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private IMessageBus CreateMessageBus()
         {
-            return new MessageBus(_messageBusConfig, _messageBroker, _queueHandlerFactory);
+            return new MessageBus(_messageBusConfig, _messageBrokerFactory, _queueHandlerFactory);
         }
     }
 }

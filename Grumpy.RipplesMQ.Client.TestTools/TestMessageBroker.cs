@@ -83,7 +83,10 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             _messageBrokerQueue.MessageBroker = this;
             var queueHandlerFactory = new QueueHandlerFactory(_queueFactory);
 
-            MessageBus = new MessageBus(messageBusConfig, this, queueHandlerFactory);
+            var messageBrokerFactory = Substitute.For<IMessageBrokerFactory>();
+            messageBrokerFactory.Create(Arg.Any<MessageBusConfig>()).Returns(this);
+
+            MessageBus = new MessageBus(messageBusConfig, messageBrokerFactory, queueHandlerFactory);
         }
 
         /// <summary>
@@ -293,7 +296,6 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         {
             _messageBrokerQueue?.Dispose();
             _messageBroker?.Dispose();
-            MessageBus?.Dispose();
         }
 
         internal void RegisterPublish(PublishMessage message)

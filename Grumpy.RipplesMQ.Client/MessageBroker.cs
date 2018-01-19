@@ -351,6 +351,5 @@ namespace Grumpy.RipplesMQ.Client
                 _disposed = true;
             }
         }
-
     }
 }
