@@ -5,10 +5,7 @@
         <version>0</version>
         <title>Grumpy.RipplesMQ.Client</title>
         <description>Client library for using the RipplesMQ Message Broker Server</description>
-        <summary>
-            This library makes it easy to use the RipplesMQ Message Broker, both for setting up handlers in services and
-            for using the message broker to publish messages or call requests.
-        </summary>
+        <summary>This library makes it easy to use the RipplesMQ Message Broker, both for setting up handlers in services and for using the message broker to publish messages or call requests.</summary>
         <tags>ripplesmq ripplesmq-client message-broker message-queue message-bus client-lib api msmq</tags>
         <authors>Anders Busted-Janum</authors>
         <owners>GrumpyBusted</owners>
@@ -18,11 +15,11 @@
         <language>en-US</language>
         <copyright>Copyright © Busted-Janum 2018</copyright>
         <dependencies>
-            <dependency id="Grumpy.Common" version="1.2.0" />
-            <dependency id="Grumpy.Common.Json" version="1.2.0" />
-            <dependency id="Grumpy.MessageQueue" version="1.2.0" />
-            <dependency id="Grumpy.RipplesMQ.Config" version="1.2.0" />
-            <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.0" />
+            <dependency id="Grumpy.Common" version="1.2.3" />
+            <dependency id="Grumpy.Common.Json" version="1.2.3" />
+            <dependency id="Grumpy.MessageQueue" version="1.2.1" />
+            <dependency id="Grumpy.RipplesMQ.Config" version="1.2.2" />
+            <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.2" />
             <dependency id="NSubstitute" version="3.1.0" />
         </dependencies>
     </metadata>
