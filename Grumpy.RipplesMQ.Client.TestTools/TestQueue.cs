@@ -1,49 +1,66 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Grumpy.Json;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
+using Grumpy.MessageQueue.Msmq;
+using Grumpy.MessageQueue.Msmq.Dto;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client.TestTools
 {
-    internal class TestMessageQueue : ILocaleQueue
+    internal class TestQueue : ILocaleQueue
     {
-        public TestMessageQueue(string name, bool durable, bool privateQueue)
+        private readonly TestMessageBroker _testMessageBroker;
+        private object _message;
+        private Type _messageType;
+        private bool _onlyOnce;
+
+        public void SetMessage<T>(T message, bool onlyOnce)
         {
+            _onlyOnce = onlyOnce;
+            _message = message;
+            _messageType = message.GetType();
+        }
+
+        public TestQueue(string name, TestMessageBroker testTestMessageBroker)
+        {
+            _testMessageBroker = testTestMessageBroker;
             Name = name;
-            Durable = durable;
-            Private = privateQueue;
+            Durable = false;
+            Private = true;
         }
 
         public bool Durable { get; }
-        
+
         public bool Transactional => true;
-        
-        public TestMessageBroker MessageBroker { private get; set; }
-        
+
+
         public bool Private { get; }
-        
+
         public T Receive<T>(int millisecondsTimeout, CancellationToken cancellationToken)
         {
-            return default(T);
+            return (T)Receive(millisecondsTimeout, cancellationToken).Message;
         }
-        
+
         public string Name { get; }
-        
+
         public int Count => 0;
-        
+
         public void Connect()
         {
         }
-        
+
         public void Connect(AccessMode mode)
         {
         }
-        
+
         public void Reconnect()
         {
         }
-        
+
         public void Reconnect(AccessMode mode)
         {
         }
@@ -57,24 +74,36 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             if (message != null)
             {
                 if (typeof(T) == typeof(PublishMessage))
-                    MessageBroker.RegisterPublish(message as PublishMessage);
+                    _testMessageBroker.RegisterPublish(message as PublishMessage);
                 else if (typeof(T) == typeof(SubscribeHandlerCompleteMessage))
-                    MessageBroker.RegisterSubscriberComplete(message as SubscribeHandlerCompleteMessage);
+                    _testMessageBroker.RegisterSubscriberComplete(message as SubscribeHandlerCompleteMessage);
                 else if (typeof(T) == typeof(SubscribeHandlerErrorMessage))
-                    MessageBroker.RegisterSubscribeError(message as SubscribeHandlerErrorMessage);
+                    _testMessageBroker.RegisterSubscribeError(message as SubscribeHandlerErrorMessage);
                 else if (typeof(T) == typeof(ResponseMessage))
-                    MessageBroker.RegisterResponse(message as ResponseMessage);
+                    _testMessageBroker.RegisterResponse(message as ResponseMessage);
             }
         }
 
         public Task<ITransactionalMessage> ReceiveAsync(int millisecondsTimeout, CancellationToken cancellationToken)
         {
-            return default(Task<ITransactionalMessage>);
+            if (_message == null)
+            {
+                Thread.Sleep(1000);
+
+                return  Task.FromResult<ITransactionalMessage>(new TransactionalMessage(null, null));;
+            }
+
+            var res = Task.FromResult<ITransactionalMessage>(new TestTransactionalMessage(_message));
+
+            if (_onlyOnce)
+                _message = null;
+
+            return res;
         }
 
         public ITransactionalMessage Receive(int millisecondsTimeout, CancellationToken cancellationToken)
         {
-            return default(ITransactionalMessage);
+            return ReceiveAsync(millisecondsTimeout, cancellationToken).Result;
         }
 
         public void Create()

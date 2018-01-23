@@ -233,7 +233,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools.UnitTests
 
             var response = MessageBroker.Request<MyRequestDto, MyResponseDto>(MyTestServiceConfig.MyTestRequest, new MyRequestDto { Name = "MyRequest", Count = 1 });
 
-            service.Name.Should().Be("MyRequest");
+            response.Name.Should().Be("MyRequest");
             response.Count.Should().Be(1);
         }
     }

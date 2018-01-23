@@ -19,8 +19,7 @@
             <dependency id="Grumpy.Common.Json" version="1.2.3" />
             <dependency id="Grumpy.MessageQueue" version="1.2.1" />
             <dependency id="Grumpy.RipplesMQ.Config" version="1.2.2" />
-            <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.2" />
-            <dependency id="NSubstitute" version="3.1.0" />
+            <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.4" />
         </dependencies>
     </metadata>
     <files>

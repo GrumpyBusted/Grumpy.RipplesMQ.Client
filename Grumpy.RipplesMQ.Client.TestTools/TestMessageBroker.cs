@@ -11,12 +11,14 @@ using Grumpy.Json;
 using Grumpy.MessageQueue;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
+using Grumpy.MessageQueue.Msmq;
+using Grumpy.MessageQueue.Msmq.Dto;
+using Grumpy.MessageQueue.TestTools;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
 using Grumpy.RipplesMQ.Shared.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
-using NSubstitute;
 using Task = System.Threading.Tasks.Task;
 
 namespace Grumpy.RipplesMQ.Client.TestTools
@@ -39,7 +41,6 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         private readonly Dictionary<string, ILocaleQueue> _requestQueues = new Dictionary<string, ILocaleQueue>();
         private readonly object _lock = new object();
         private int _pendingMessages;
-        private readonly TestMessageQueue _messageBrokerQueue;
 
         /// <summary>
         /// Collection of Messages published to the Test Message Bus, Use the for asserting that the messages was published as expected in the Service.
@@ -70,21 +71,15 @@ namespace Grumpy.RipplesMQ.Client.TestTools
                 InstanceName = ""
             };
 
-            _queueFactory = Substitute.For<IQueueFactory>();
+            _queueFactory = new TestQueueFactory(this);
 
-            _messageBrokerQueue = new TestMessageQueue(MessageBrokerConfig.LocaleQueueName, true, true);
-            _queueFactory.CreateLocale(Arg.Is<string>(n => n.Contains(MessageBrokerConfig.LocaleQueueName)), Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(_messageBrokerQueue);
-
-            var processInformation = Substitute.For<IProcessInformation>();
-            processInformation.MachineName.Returns("TestServer");
+            var processInformation = new ProcessInformation();
 
             _messageBroker = new MessageBroker(messageBusConfig, _queueFactory, processInformation);
 
-            _messageBrokerQueue.MessageBroker = this;
             var queueHandlerFactory = new QueueHandlerFactory(_queueFactory);
 
-            var messageBrokerFactory = Substitute.For<IMessageBrokerFactory>();
-            messageBrokerFactory.Create(Arg.Any<MessageBusConfig>()).Returns(this);
+            var messageBrokerFactory = new TestMessageBrokerFactory(this);
 
             MessageBus = new MessageBus(messageBusConfig, messageBrokerFactory, queueHandlerFactory);
         }
@@ -164,11 +159,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             if (queue.Value != null)
             {
-                MockMessage(queue.Value, new RequestMessage { Body = ResponseMessage(request), Name = config.Name, ReplyQueue = replyQueue });
+                MockMessage(queue.Value, new RequestMessage { Body = ResponseMessage(request), Name = config.Name, ReplyQueue = replyQueue }, true);
 
                 // ReSharper disable once ImplicitlyCapturedClosure
                 TimerUtility.WaitForIt(() => _responses.Any(r => r.ReplyQueue == replyQueue), Debugger.IsAttached ? 360000 : config.MillisecondsTimeout);
             }
+
+            Thread.Sleep(100);
 
             return (TResponse)_responses.FirstOrDefault(r => r.ReplyQueue == replyQueue)?.Body;
         }
@@ -176,11 +173,10 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         /// <inheritdoc />
         public MessageBusServiceRegisterReplyMessage RegisterMessageBusService(CancellationToken cancellationToken)
         {
-            MockQueueReceive($".{typeof(MessageBusServiceRegisterMessage).Name}.Reply.", new MessageBusServiceRegisterReplyMessage());
+            MockMessage($".{typeof(MessageBusServiceRegisterMessage).Name}.Reply.", new MessageBusServiceRegisterReplyMessage());
 
             return _messageBroker.RegisterMessageBusService(cancellationToken);
         }
-
 
         /// <inheritdoc />
         public SubscribeHandlerRegisterReplyMessage RegisterSubscribeHandler(string name, string topic, bool durable, string queueName, CancellationToken cancellationToken)
@@ -190,8 +186,9 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             _topicSubscribers[topic].Add(queueName);
 
-            _subscriberQueues[queueName] = MockQueueReceive(queueName);
-            MockQueueReceive($".{typeof(SubscribeHandlerRegisterMessage).Name}.Reply.", new SubscribeHandlerRegisterReplyMessage());
+            _subscriberQueues[queueName] = MockQueue(queueName);
+            
+            MockMessage($".{typeof(SubscribeHandlerRegisterMessage).Name}.Reply.", new SubscribeHandlerRegisterReplyMessage());
 
             return _messageBroker.RegisterSubscribeHandler(name, topic, durable, queueName, cancellationToken);
         }
@@ -199,8 +196,9 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         /// <inheritdoc />
         public RequestHandlerRegisterReplyMessage RegisterRequestHandler(string name, string queueName, CancellationToken cancellationToken)
         {
-            _requestQueues[name] = MockQueueReceive(queueName);
-            MockQueueReceive($".{typeof(RequestHandlerRegisterMessage).Name}.Reply.", new RequestHandlerRegisterReplyMessage());
+            _requestQueues[name] = MockQueue(queueName);
+
+            MockMessage($".{typeof(RequestHandlerRegisterMessage).Name}.Reply.", new RequestHandlerRegisterReplyMessage());
 
             return _messageBroker.RegisterRequestHandler(name, queueName, cancellationToken);
         }
@@ -215,7 +213,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         public PublishReplyMessage SendPublishMessage<T>(string topic, T message, bool persistent, CancellationToken cancellationToken)
         {
             if (persistent)
-                MockQueueReceive($".{typeof(PublishMessage).Name}.Reply.", new PublishReplyMessage());
+                MockMessage($".{typeof(PublishMessage).Name}.Reply.", new PublishReplyMessage());
 
             Publish(new PublishSubscribeConfig { Persistent = persistent, Topic = topic }, message);
 
@@ -279,22 +277,10 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             }
         }
 
-        private static ITransactionalMessage CreateTransactionalMessage<T>(T message)
-        {
-            var transactionalMessage = Substitute.For<ITransactionalMessage>();
-
-            transactionalMessage.Body.Returns(message.SerializeToJson());
-            transactionalMessage.Message.Returns(message);
-            transactionalMessage.Type.Returns(message.GetType());
-
-            return transactionalMessage;
-        }
-
         /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed")]
         public void Dispose()
         {
-            _messageBrokerQueue?.Dispose();
             _messageBroker?.Dispose();
         }
 
@@ -318,7 +304,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             _responses.Add(message);
         }
 
-        private static PublishMessage CreatePublishMessage(PublishSubscribeConfig publishSubscribeConfig, object message)
+        private static PublishMessage CreatePublishMessage<T>(PublishSubscribeConfig publishSubscribeConfig, T message)
         {
             return new PublishMessage { Body = message, MessageId = UniqueKeyUtility.Generate(), Persistent = publishSubscribeConfig.Persistent, ReplyQueue = null, Topic = publishSubscribeConfig.Topic };
         }
@@ -328,65 +314,25 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             return message;
         }
 
-        private static ITransactionalMessage ReceiveNull()
-        {
-            Thread.Sleep(100);
-
-            return null;
-        }
-
         private void WaitForIt()
         {
             TimerUtility.WaitForIt(() => _pendingMessages == 0, Debugger.IsAttached ? 3600000 : 6000);
         }
 
-        private void MockQueueReceive<T>(string name, T message)
-        {
-            MockMessage(MockQueue(name), message);
-        }
-
-        private ILocaleQueue MockQueueReceive(string name)
-        {
-            var queue = MockQueue(name);
-
-            MockMessage(queue);
-
-            return queue;
-        }
-
         private ILocaleQueue MockQueue(string name)
         {
-            var queue = Substitute.For<ILocaleQueue>();
-
-            queue.Name.Returns(name);
-
-            _queueFactory.CreateLocale(Arg.Is<string>(n => n.Contains(name)), Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(queue);
-
-            return queue;
+            return _queueFactory.CreateLocale(name, true, LocaleQueueMode.TemporaryMaster, true);
         }
 
-        private static void MockMessage<T>(IQueue queue, T message, bool onlyOne = false)
+        private static void MockMessage<T>(IQueue queue, T message, bool onlyOnce)
         {
-            var transactionalMessage = CreateTransactionalMessage(message);
-
-            queue.Receive<T>(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(message);
-
-            if (onlyOne)
-            {
-                queue.Receive(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(transactionalMessage, ReceiveNull());
-                queue.ReceiveAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(transactionalMessage), Task.FromResult(ReceiveNull()));
-            }
-            else
-            {
-                queue.Receive(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(transactionalMessage);
-                queue.ReceiveAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(transactionalMessage));
-            }
+            if (queue is TestQueue testQueue)
+                testQueue.SetMessage<T>(message, onlyOnce);
         }
 
-        private static void MockMessage(IQueue queue)
+        private void MockMessage<T>(string queueName, T message)
         {
-            queue.Receive(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(m => ReceiveNull());
-            queue.ReceiveAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult((ITransactionalMessage)null));
+            MockMessage(MockQueue(queueName), message, true);
         }
     }
 }

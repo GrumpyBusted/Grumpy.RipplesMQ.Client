@@ -48,7 +48,7 @@ namespace Grumpy.RipplesMQ.Client
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationTokenRegistration = cancellationToken.Register(Stop);
 
-            _messageBroker.RegisterMessageBusService(_cancellationTokenSource.Token).SerializeToJson();
+            _messageBroker.RegisterMessageBusService(_cancellationTokenSource.Token);
 
             // ReSharper disable once InconsistentlySynchronizedField
             foreach (var subscribeHandler in _subscribeHandlers)
