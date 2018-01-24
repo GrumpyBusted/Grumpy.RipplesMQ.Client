@@ -36,7 +36,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         /// </summary>
         protected void Start()
         {
-            MessageBus.Start(new CancellationToken(), false);
+            MessageBus.Start(new CancellationToken());
         }
 
         /// <inheritdoc />

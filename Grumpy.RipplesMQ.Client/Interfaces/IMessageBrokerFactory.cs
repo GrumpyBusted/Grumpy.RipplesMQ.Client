@@ -1,7 +1,4 @@
-﻿using Grumpy.Common.Interfaces;
-using Grumpy.MessageQueue.Interfaces;
-
-namespace Grumpy.RipplesMQ.Client.Interfaces
+﻿namespace Grumpy.RipplesMQ.Client.Interfaces
 {
     /// <summary>
     /// Message Broker Factory

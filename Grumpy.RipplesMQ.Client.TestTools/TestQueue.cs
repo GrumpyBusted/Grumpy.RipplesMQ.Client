@@ -1,13 +1,9 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Grumpy.Json;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.MessageQueue.Msmq;
-using Grumpy.MessageQueue.Msmq.Dto;
 using Grumpy.RipplesMQ.Shared.Messages;
-using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client.TestTools
 {
@@ -15,14 +11,12 @@ namespace Grumpy.RipplesMQ.Client.TestTools
     {
         private readonly TestMessageBroker _testMessageBroker;
         private object _message;
-        private Type _messageType;
         private bool _onlyOnce;
 
         public void SetMessage<T>(T message, bool onlyOnce)
         {
             _onlyOnce = onlyOnce;
             _message = message;
-            _messageType = message.GetType();
         }
 
         public TestQueue(string name, TestMessageBroker testTestMessageBroker)
@@ -90,7 +84,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             {
                 Thread.Sleep(1000);
 
-                return  Task.FromResult<ITransactionalMessage>(new TransactionalMessage(null, null));;
+                return  Task.FromResult<ITransactionalMessage>(new TransactionalMessage(null, null));
             }
 
             var res = Task.FromResult<ITransactionalMessage>(new TestTransactionalMessage(_message));

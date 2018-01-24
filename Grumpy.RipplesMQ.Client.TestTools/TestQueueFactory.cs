@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Grumpy.Common.Extensions;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
-using Grumpy.RipplesMQ.Client.Interfaces;
 
 namespace Grumpy.RipplesMQ.Client.TestTools
 {

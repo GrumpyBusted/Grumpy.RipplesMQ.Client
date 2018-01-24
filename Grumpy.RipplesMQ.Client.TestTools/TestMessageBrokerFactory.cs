@@ -8,7 +8,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         private readonly IMessageBroker _messageBroker;
 
         /// <inheritdoc />
-        public TestMessageBrokerFactory(TestMessageBroker testMessageBroker)
+        public TestMessageBrokerFactory(IMessageBroker testMessageBroker)
         {
             _messageBroker = testMessageBroker;
         }

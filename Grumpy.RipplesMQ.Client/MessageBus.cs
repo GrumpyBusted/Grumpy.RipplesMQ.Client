@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Grumpy.Common;
 using Grumpy.Common.Extensions;
 using Grumpy.Common.Threading;
-using Grumpy.Json;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;

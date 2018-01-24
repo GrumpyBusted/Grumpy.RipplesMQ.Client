@@ -5,19 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
-using Grumpy.Common.Interfaces;
 using Grumpy.Common.Threading;
-using Grumpy.Json;
 using Grumpy.MessageQueue;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
-using Grumpy.MessageQueue.Msmq;
-using Grumpy.MessageQueue.Msmq.Dto;
-using Grumpy.MessageQueue.TestTools;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
-using Grumpy.RipplesMQ.Shared.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
 using Task = System.Threading.Tasks.Task;
 
@@ -327,7 +321,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         private static void MockMessage<T>(IQueue queue, T message, bool onlyOnce)
         {
             if (queue is TestQueue testQueue)
-                testQueue.SetMessage<T>(message, onlyOnce);
+                testQueue.SetMessage(message, onlyOnce);
         }
 
         private void MockMessage<T>(string queueName, T message)

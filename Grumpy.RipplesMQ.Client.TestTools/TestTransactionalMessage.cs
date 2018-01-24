@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Grumpy.Json;
 using Grumpy.MessageQueue.Interfaces;
 using Newtonsoft.Json;
@@ -10,6 +11,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
     {
         /// <inheritdoc />
         public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+        [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+        private void Dispose(bool disposing)
         {
         }
 

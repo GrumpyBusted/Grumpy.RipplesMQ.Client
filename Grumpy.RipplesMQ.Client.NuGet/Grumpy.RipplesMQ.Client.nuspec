@@ -15,8 +15,8 @@
         <language>en-US</language>
         <copyright>Copyright © Busted-Janum 2018</copyright>
         <dependencies>
-            <dependency id="Grumpy.Common" version="1.2.3" />
-            <dependency id="Grumpy.Common.Json" version="1.2.3" />
+            <dependency id="Grumpy.Common" version="1.2.5" />
+            <dependency id="Grumpy.Json" version="1.2.3" />
             <dependency id="Grumpy.MessageQueue" version="1.2.1" />
             <dependency id="Grumpy.RipplesMQ.Config" version="1.2.2" />
             <dependency id="Grumpy.RipplesMQ.Shared" version="1.2.4" />
