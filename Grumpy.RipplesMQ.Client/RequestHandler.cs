@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Grumpy.Common;
-using Grumpy.Common.Extensions;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
@@ -16,7 +15,6 @@ namespace Grumpy.RipplesMQ.Client
     /// </summary>
     public sealed class RequestHandler : IDisposable
     {
-        private readonly MessageBusConfig _messageBusConfig;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
         private IQueueHandler _queueHandler;
@@ -35,15 +33,15 @@ namespace Grumpy.RipplesMQ.Client
         /// <summary>
         /// Queue Name
         /// </summary>
-        public string QueueName { get; private set; }
+        public string QueueName { get; }
 
         /// <inheritdoc />
         public RequestHandler(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name)
         {
-            _messageBusConfig = messageBusConfig;
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             Name = name;
+            QueueName = $"{messageBusConfig.ServiceName.Replace("$", ".")}.{Name}.{UniqueKeyUtility.Generate()}";
         }
 
         /// <summary>
@@ -84,11 +82,16 @@ namespace Grumpy.RipplesMQ.Client
             if (_queueHandler == null)
                 throw new ArgumentException("Cannot Start before Set");
 
-            QueueName = $"{_messageBusConfig.ServiceName + (_messageBusConfig.InstanceName.NullOrEmpty() ? "" : $".{_messageBusConfig.InstanceName}")}.{Name}.{UniqueKeyUtility.Generate()}";
-
             _messageBroker.RegisterRequestHandler(Name, QueueName, cancellationToken);
-
             _queueHandler.Start(QueueName, true, LocaleQueueMode.TemporaryMaster, true, MessageHandler, ErrorHandler, null, 1000, _multiThreaded, syncMode, cancellationToken);
+        }
+        
+        /// <summary>
+        /// Stop handling request
+        /// </summary>
+        public void Stop()
+        {
+            _queueHandler?.Stop();
         }
 
         /// <inheritdoc />
@@ -102,7 +105,10 @@ namespace Grumpy.RipplesMQ.Client
             if (!_disposed)
             {
                 if (disposing)
+                {
                     Stop();
+                    _queueHandler?.Dispose();
+                }
 
                 _disposed = true;
             }
@@ -118,13 +124,6 @@ namespace Grumpy.RipplesMQ.Client
             _multiThreaded = multiThreaded;
 
             _queueHandler = _queueHandlerFactory.Create();
-        }
-
-        private void Stop()
-        {
-            _queueHandler?.Stop();
-            _queueHandler?.Dispose();
-            _queueHandler = null;
         }
 
         /// <summary>

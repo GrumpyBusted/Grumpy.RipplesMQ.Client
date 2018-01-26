@@ -28,10 +28,10 @@ namespace Grumpy.RipplesMQ.Client
         private TimerTask _handshakeTask;
 
         /// <inheritdoc />
-        public MessageBus(MessageBusConfig messageBusConfig, IMessageBrokerFactory messageBrokerFactory, IQueueHandlerFactory queueHandlerFactory)
+        public MessageBus(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory)
         {
             _messageBusConfig = messageBusConfig;
-            _messageBroker = messageBrokerFactory.Create(messageBusConfig);
+            _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
 
             _subscribeHandlers = new List<SubscribeHandler>();
@@ -39,10 +39,10 @@ namespace Grumpy.RipplesMQ.Client
         }
 
         /// <inheritdoc />
-        public void Start(CancellationToken cancellationToken, bool syncMode)
+        public void Start(CancellationToken cancellationToken, bool syncMode = false)
         {
             if (_cancellationTokenSource != null)
-                throw new ArgumentException("Cannot Start Twice");
+                throw new ArgumentException("Message Bus not Stopped");
 
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationTokenRegistration = cancellationToken.Register(Stop);
@@ -65,18 +65,27 @@ namespace Grumpy.RipplesMQ.Client
             _handshakeTask.Start(SendHandshake, 30000, _cancellationTokenSource.Token);
         }
 
+        /// <inheritdoc />
+        public void Stop()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+
+            _handshakeTask?.Dispose();
+
+            Parallel.ForEach(_subscribeHandlers, subscribeHandler => subscribeHandler.Stop());
+            Parallel.ForEach(_requestHandlers, requestHandler => requestHandler.Stop());
+
+            _cancellationTokenRegistration.Dispose();
+        }
+
         private void SendHandshake()
         {
             var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable });
             var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler { Name = s.Name, QueueName = s.QueueName });
 
             _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers);
-        }
-
-        /// <inheritdoc />
-        public void Stop()
-        {
-            _cancellationTokenSource?.Cancel();
         }
 
         /// <inheritdoc />
@@ -222,22 +231,17 @@ namespace Grumpy.RipplesMQ.Client
         {
             if (!_disposed)
             {
+                _disposed = true;
+
                 if (disposing)
                 {
                     Stop();
-
-                    _handshakeTask?.Dispose();
 
                     Parallel.ForEach(_subscribeHandlers, subscribeHandler => subscribeHandler.Dispose());
                     Parallel.ForEach(_requestHandlers, requestHandler => requestHandler.Dispose());
 
                     _messageBroker.Dispose();
-
-                    _cancellationTokenSource?.Dispose();
-                    _cancellationTokenRegistration.Dispose();
                 }
-
-                _disposed = true;
             }
         }
 

@@ -9,10 +9,5 @@ namespace Grumpy.RipplesMQ.Client
         /// Service name
         /// </summary>
         public string ServiceName { get; set; }
-
-        /// <summary>
-        /// Service Instance Name
-        /// </summary>
-        public string InstanceName { get; set; }
     }
 }

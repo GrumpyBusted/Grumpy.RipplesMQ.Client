@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using FluentAssertions;
 using Grumpy.RipplesMQ.Client.Exceptions;
+using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Client.TestTools.UnitTests.Helper;
 using Grumpy.RipplesMQ.Config;
 using Xunit;
@@ -236,5 +238,45 @@ namespace Grumpy.RipplesMQ.Client.TestTools.UnitTests
             response.Name.Should().Be("MyRequest");
             response.Count.Should().Be(1);
         }
+    }
+
+    public class MyResponseDtoB
+    {
+    }
+
+    public class MyRequestDtoB
+    {
+    }
+
+    public class MyRequestADto
+    {
+    }
+
+    public class MyResponseADto
+    {
+    }
+
+    public class MyDtoB
+    {
+    }
+
+    public class MyResponseBDto
+    {
+    }
+
+    public class MyRequestBDto
+    {
+    }
+
+    public class MyRequestDtoA
+    {
+    }
+
+    public class MyResponseDtoA
+    {
+    }
+
+    public class MyDtoA
+    {
     }
 }

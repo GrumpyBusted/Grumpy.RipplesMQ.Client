@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
-using Grumpy.Common.Extensions;
 using Grumpy.Common.Interfaces;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
@@ -31,7 +30,7 @@ namespace Grumpy.RipplesMQ.Client
             _queueFactory = queueFactory;
             _processInformation = processInformation;
 
-            _queueNamePrefix = $"{_messageBusConfig.ServiceName + (_messageBusConfig.InstanceName.NullOrEmpty() ? "" : $".{_messageBusConfig.InstanceName}")}";
+            _queueNamePrefix = $"{_messageBusConfig.ServiceName.Replace("$", ".")}";
             _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true);
         }
 
@@ -42,7 +41,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                InstanceName = _messageBusConfig.InstanceName,
                 ReplyQueue = $"{_queueNamePrefix}.{typeof(MessageBusServiceRegisterMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
                 RegisterDateTime = DateTimeOffset.Now
             };
@@ -69,7 +67,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                InstanceName = _messageBusConfig.InstanceName,
                 Name = name,
                 Topic = topic,
                 Durable = durable,
@@ -100,7 +97,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                InstanceName = _messageBusConfig.InstanceName,
                 Name = name,
                 QueueName = queueName,
                 ReplyQueue = $"{_queueNamePrefix}.{typeof(RequestHandlerRegisterMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
@@ -129,7 +125,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                InstanceName = _messageBusConfig.InstanceName,
                 HandshakeDateTime = DateTimeOffset.Now,
                 SubscribeHandlers = subscribeHandlers,
                 RequestHandlers = requestHandlers
@@ -147,7 +142,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                InstanceName = _messageBusConfig.InstanceName,
                 MessageId = id,
                 Topic = topic,
                 Persistent = persistent,
@@ -195,10 +189,8 @@ namespace Grumpy.RipplesMQ.Client
             {
                 PublisherServerName = publishMessage.ServerName,
                 PublisherServiceName = publishMessage.ServiceName,
-                PublisherInstanceName = publishMessage.InstanceName,
                 HandlerServerName = _processInformation.MachineName,
                 HandlerServiceName = _messageBusConfig.ServiceName,
-                HandlerInstanceName = _messageBusConfig.InstanceName,
                 MessageId = publishMessage.MessageId,
                 Name = name,
                 Topic = publishMessage.Topic,
@@ -219,10 +211,8 @@ namespace Grumpy.RipplesMQ.Client
             {
                 PublisherServerName = publishMessage.ServerName,
                 PublisherServiceName = publishMessage.ServiceName,
-                PublisherInstanceName = publishMessage.InstanceName,
                 HandlerServerName = _processInformation.MachineName,
                 HandlerServiceName = _messageBusConfig.ServiceName,
-                HandlerInstanceName = _messageBusConfig.InstanceName,
                 MessageId = publishMessage.MessageId,
                 Name = name,
                 Durable = durable,
@@ -243,7 +233,6 @@ namespace Grumpy.RipplesMQ.Client
             {
                 RequesterServerName = _processInformation.MachineName,
                 RequesterServiceName = _messageBusConfig.ServiceName,
-                RequesterInstanceName = _messageBusConfig.InstanceName,
                 RequestId = UniqueKeyUtility.Generate(),
                 Name = name,
                 Body = request,
@@ -289,10 +278,8 @@ namespace Grumpy.RipplesMQ.Client
             {
                 RequesterServerName = requestMessage.RequesterServerName,
                 RequesterServiceName = requestMessage.RequesterServiceName,
-                RequesterInstanceName = requestMessage.RequesterInstanceName,
                 ResponderServerName = _processInformation.MachineName,
                 ResponderServiceName = _messageBusConfig.ServiceName,
-                ResponderInstanceName = _messageBusConfig.InstanceName,
                 RequestId = requestMessage.RequestId,
                 ReplyQueue = replyQueue,
                 Body = response,
@@ -319,10 +306,8 @@ namespace Grumpy.RipplesMQ.Client
             {
                 RequesterServerName = requestMessage.RequesterServerName,
                 RequesterServiceName = requestMessage.RequesterServiceName,
-                RequesterInstanceName = requestMessage.RequesterInstanceName,
                 ResponderServerName = _processInformation.MachineName,
                 ResponderServiceName = _messageBusConfig.ServiceName,
-                ResponderInstanceName = _messageBusConfig.InstanceName,
                 RequestId = requestMessage.RequestId,
                 ReplyQueue = replyQueue,
                 RequestMessage = requestMessage,

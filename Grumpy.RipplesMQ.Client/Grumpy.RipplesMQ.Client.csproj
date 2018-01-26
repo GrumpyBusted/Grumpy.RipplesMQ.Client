@@ -45,11 +45,10 @@
     <Compile Include="Exceptions\RequestHandlerRegisterTimeoutException.cs" />
     <Compile Include="Exceptions\RequestResponseTimeoutException.cs" />
     <Compile Include="Exceptions\SubscribeHandlerRegisterTimeoutException.cs" />
-    <Compile Include="Interfaces\IMessageBrokerFactory.cs" />
     <Compile Include="Interfaces\IMessageBroker.cs" />
     <Compile Include="Interfaces\IMessageBus.cs" />
     <Compile Include="MessageBroker.cs" />
-    <Compile Include="MessageBrokerFactory.cs" />
+    <Compile Include="MessageBusBuilder.cs" />
     <Compile Include="MessageBus.cs" />
     <Compile Include="MessageBusConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,13 +60,13 @@
       <Version>1.2.3</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.MessageQueue">
-      <Version>1.2.1</Version>
+      <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Config">
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Shared">
-      <Version>1.2.4</Version>
+      <Version>1.2.5</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -61,8 +61,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         {
             var messageBusConfig = new MessageBusConfig
             {
-                ServiceName = "Grumpy.RipplesMQ.TestTools",
-                InstanceName = ""
+                ServiceName = "Grumpy.RipplesMQ.TestTools"
             };
 
             _queueFactory = new TestQueueFactory(this);
@@ -73,9 +72,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             var queueHandlerFactory = new QueueHandlerFactory(_queueFactory);
 
-            var messageBrokerFactory = new TestMessageBrokerFactory(this);
-
-            MessageBus = new MessageBus(messageBusConfig, messageBrokerFactory, queueHandlerFactory);
+            MessageBus = new MessageBus(messageBusConfig, this, queueHandlerFactory);
         }
 
         /// <summary>

@@ -21,8 +21,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             _messageBusConfig = new MessageBusConfig
             {
-                ServiceName = "UnitTest",
-                InstanceName = "1"
+                ServiceName = "UnitTest"
             };
 
             _messageBroker = Substitute.For<IMessageBroker>();
