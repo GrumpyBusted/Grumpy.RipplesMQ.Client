@@ -20,7 +20,7 @@ namespace Grumpy.RipplesMQ.Client
         private readonly IQueueFactory _queueFactory;
         private readonly IProcessInformation _processInformation;
         private readonly string _queueNamePrefix;
-        private readonly IQueue _messageBrokerQueue;
+        private readonly ILocaleQueue _messageBrokerQueue;
         private bool _disposed;
 
         /// <inheritdoc />
@@ -32,6 +32,9 @@ namespace Grumpy.RipplesMQ.Client
 
             _queueNamePrefix = $"{_messageBusConfig.ServiceName.Replace("$", ".")}";
             _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true);
+
+            if (!_messageBrokerQueue.Exists())
+                throw new MessageBrokerException(MessageBrokerConfig.LocaleQueueName);
         }
 
         /// <inheritdoc />

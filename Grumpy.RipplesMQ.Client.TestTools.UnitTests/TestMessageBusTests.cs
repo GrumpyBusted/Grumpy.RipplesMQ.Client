@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using FluentAssertions;
 using Grumpy.RipplesMQ.Client.Exceptions;
-using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Client.TestTools.UnitTests.Helper;
 using Grumpy.RipplesMQ.Config;
 using Xunit;

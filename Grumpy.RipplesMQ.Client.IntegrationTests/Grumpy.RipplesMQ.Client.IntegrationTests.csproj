@@ -34,6 +34,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageBrokerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +47,12 @@
     <PackageReference Include="Grumpy.TestTools">
       <Version>1.2.2</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grumpy.RipplesMQ.Client\Grumpy.RipplesMQ.Client.csproj">
+      <Project>{9C3EC058-AF17-42EA-AE3F-98A8C3BA4E67}</Project>
+      <Name>Grumpy.RipplesMQ.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -39,6 +39,7 @@
     <Compile Include="Exceptions\DoubleRequestHandlerException.cs" />
     <Compile Include="Exceptions\DoubleSubscribeHandlerException.cs" />
     <Compile Include="Exceptions\InvalidMessageTypeException.cs" />
+    <Compile Include="Exceptions\MessageBrokerException.cs" />
     <Compile Include="Exceptions\MessageBusServiceRegisterTimeoutException.cs" />
     <Compile Include="Exceptions\PublishReplyTimeoutException.cs" />
     <Compile Include="Exceptions\RequestHandlerException.cs" />
