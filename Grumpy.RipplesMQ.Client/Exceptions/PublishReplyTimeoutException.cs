@@ -21,7 +21,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <param name="publishMessage"></param>
         public PublishReplyTimeoutException(PublishMessage publishMessage) : base("Publish Reply Timeout Exception")
         {
-            Data.Add(nameof(publishMessage), publishMessage.TrySerializeToJson());
+            Data.Add(nameof(publishMessage), publishMessage?.TrySerializeToJson());
         }
     }
 }

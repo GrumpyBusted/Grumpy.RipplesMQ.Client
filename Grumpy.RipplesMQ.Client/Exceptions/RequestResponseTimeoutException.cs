@@ -22,7 +22,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <param name="millisecondsTimeout">Timeout interval in Milliseconds</param>
         public RequestResponseTimeoutException(RequestMessage requestMessage, int millisecondsTimeout) : base("Request Timeout before Response Exception")
         {
-            Data.Add(nameof(requestMessage), requestMessage.TrySerializeToJson());
+            Data.Add(nameof(requestMessage), requestMessage?.TrySerializeToJson());
             Data.Add(nameof(millisecondsTimeout), millisecondsTimeout);
         }
     }

@@ -237,44 +237,4 @@ namespace Grumpy.RipplesMQ.Client.TestTools.UnitTests
             response.Count.Should().Be(1);
         }
     }
-
-    public class MyResponseDtoB
-    {
-    }
-
-    public class MyRequestDtoB
-    {
-    }
-
-    public class MyRequestADto
-    {
-    }
-
-    public class MyResponseADto
-    {
-    }
-
-    public class MyDtoB
-    {
-    }
-
-    public class MyResponseBDto
-    {
-    }
-
-    public class MyRequestBDto
-    {
-    }
-
-    public class MyRequestDtoA
-    {
-    }
-
-    public class MyResponseDtoA
-    {
-    }
-
-    public class MyDtoA
-    {
-    }
 }

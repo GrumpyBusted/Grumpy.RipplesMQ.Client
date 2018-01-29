@@ -4,12 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
 using Grumpy.Common.Interfaces;
+using Grumpy.Json;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client
 {
@@ -19,22 +21,19 @@ namespace Grumpy.RipplesMQ.Client
         private readonly MessageBusConfig _messageBusConfig;
         private readonly IQueueFactory _queueFactory;
         private readonly IProcessInformation _processInformation;
-        private readonly string _queueNamePrefix;
-        private readonly ILocaleQueue _messageBrokerQueue;
+        private ILocaleQueue _messageBrokerQueue;
+        private readonly IQueueNameUtility _queueNameUtility;
         private bool _disposed;
 
         /// <inheritdoc />
-        public MessageBroker(MessageBusConfig messageBusConfig, IQueueFactory queueFactory, IProcessInformation processInformation)
+        public MessageBroker(MessageBusConfig messageBusConfig, IQueueFactory queueFactory, IProcessInformation processInformation, IQueueNameUtility queueNameUtility)
         {
             _messageBusConfig = messageBusConfig;
             _queueFactory = queueFactory;
             _processInformation = processInformation;
+            _queueNameUtility = queueNameUtility;
 
-            _queueNamePrefix = $"{_messageBusConfig.ServiceName.Replace("$", ".")}";
-            _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true);
-
-            if (!_messageBrokerQueue.Exists())
-                throw new MessageBrokerException(MessageBrokerConfig.LocaleQueueName);
+            SetMessageBrokerQueue();
         }
 
         /// <inheritdoc />
@@ -44,15 +43,15 @@ namespace Grumpy.RipplesMQ.Client
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                ReplyQueue = $"{_queueNamePrefix}.{typeof(MessageBusServiceRegisterMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
+                ReplyQueue = _queueNameUtility.ReplyQueue<MessageBusServiceRegisterMessage>(),
                 RegisterDateTime = DateTimeOffset.Now
             };
 
             using (var replyQueue = _queueFactory.CreateLocale(messageBusServiceRegisterMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, false))
             {
-                _messageBrokerQueue.Send(messageBusServiceRegisterMessage);
+                SendToMessageBroker(messageBusServiceRegisterMessage);
 
-                var messageBusServiceRegisterReplyMessage = replyQueue.Receive<MessageBusServiceRegisterReplyMessage>(10000, cancellationToken);
+                var messageBusServiceRegisterReplyMessage = replyQueue.Receive<MessageBusServiceRegisterReplyMessage>(30000, cancellationToken);
 
                 if (messageBusServiceRegisterReplyMessage == null)
                     throw new MessageBusServiceRegisterTimeoutException(messageBusServiceRegisterMessage);
@@ -74,15 +73,15 @@ namespace Grumpy.RipplesMQ.Client
                 Topic = topic,
                 Durable = durable,
                 QueueName = queueName,
-                ReplyQueue = $"{_queueNamePrefix}.{typeof(SubscribeHandlerRegisterMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
+                ReplyQueue = _queueNameUtility.ReplyQueue<SubscribeHandlerRegisterMessage>(),
                 RegisterDateTime = DateTimeOffset.Now
             };
 
             using (var replyQueue = _queueFactory.CreateLocale(messageBusSubscriberRegisterMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, false))
             {
-                _messageBrokerQueue.Send(messageBusSubscriberRegisterMessage);
+                SendToMessageBroker(messageBusSubscriberRegisterMessage);
 
-                var subscribeHandlerRegisterReplyMessage = replyQueue.Receive<SubscribeHandlerRegisterReplyMessage>(10000, cancellationToken);
+                var subscribeHandlerRegisterReplyMessage = replyQueue.Receive<SubscribeHandlerRegisterReplyMessage>(3000, cancellationToken);
 
                 if (subscribeHandlerRegisterReplyMessage == null)
                     throw new SubscribeHandlerRegisterTimeoutException(messageBusSubscriberRegisterMessage);
@@ -102,15 +101,15 @@ namespace Grumpy.RipplesMQ.Client
                 ServiceName = _messageBusConfig.ServiceName,
                 Name = name,
                 QueueName = queueName,
-                ReplyQueue = $"{_queueNamePrefix}.{typeof(RequestHandlerRegisterMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
+                ReplyQueue = _queueNameUtility.ReplyQueue<RequestHandlerRegisterMessage>(),
                 RegisterDateTime = DateTimeOffset.Now
             };
 
             using (var replyQueue = _queueFactory.CreateLocale(requestHandlerRegisterMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, false))
             {
-                _messageBrokerQueue.Send(requestHandlerRegisterMessage);
+                SendToMessageBroker(requestHandlerRegisterMessage);
 
-                var subscribeHandlerRegisterReplyMessage = replyQueue.Receive<RequestHandlerRegisterReplyMessage>(10000, cancellationToken);
+                var subscribeHandlerRegisterReplyMessage = replyQueue.Receive<RequestHandlerRegisterReplyMessage>(3000, cancellationToken);
 
                 if (subscribeHandlerRegisterReplyMessage == null)
                     throw new RequestHandlerRegisterTimeoutException(requestHandlerRegisterMessage);
@@ -133,7 +132,7 @@ namespace Grumpy.RipplesMQ.Client
                 RequestHandlers = requestHandlers
             };
 
-            _messageBrokerQueue.Send(requestHandlerRegisterMessage);
+            SendToMessageBroker(requestHandlerRegisterMessage);
         }
 
         /// <inheritdoc />
@@ -148,8 +147,9 @@ namespace Grumpy.RipplesMQ.Client
                 MessageId = id,
                 Topic = topic,
                 Persistent = persistent,
-                Body = message,
-                ReplyQueue = persistent ? $"{_queueNamePrefix}.{topic}.{typeof(PublishMessage).Name}.Reply.{id}" : null,
+                MessageBody = SerializeToJson(message),
+                MessageType = typeof(T).FullName,
+                ReplyQueue = persistent ? _queueNameUtility.ReplyQueue<PublishMessage>(id) : null,
                 PublishDateTime = DateTimeOffset.Now,
                 ErrorCount = 0
             };
@@ -160,7 +160,7 @@ namespace Grumpy.RipplesMQ.Client
             {
                 using (var replyQueue = _queueFactory.CreateLocale(publishMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, false))
                 {
-                    _messageBrokerQueue.Send(publishMessage);
+                    SendToMessageBroker(publishMessage);
 
                     replyMessage = replyQueue.Receive<PublishReplyMessage>(3000, cancellationToken);
 
@@ -170,7 +170,7 @@ namespace Grumpy.RipplesMQ.Client
             }
             else
             {
-                _messageBrokerQueue.Send(publishMessage);
+                SendToMessageBroker(publishMessage);
 
                 replyMessage = new PublishReplyMessage
                 {
@@ -197,14 +197,14 @@ namespace Grumpy.RipplesMQ.Client
                 MessageId = publishMessage.MessageId,
                 Name = name,
                 Topic = publishMessage.Topic,
-                MessageType = publishMessage.Body.GetType(),
+                MessageType = publishMessage.MessageType,
                 Persistent = publishMessage.Persistent,
                 PublishDateTime = publishMessage.PublishDateTime,
                 HandlerDateTime = DateTimeOffset.Now,
                 CompletedDateTime = null
             };
 
-            _messageBrokerQueue.Send(subscriberCompleteMessage);
+            SendToMessageBroker(subscriberCompleteMessage);
         }
 
         /// <inheritdoc />
@@ -226,7 +226,7 @@ namespace Grumpy.RipplesMQ.Client
                 CompletedDateTime = null
             };
 
-            _messageBrokerQueue.Send(subscriberErrorMessage);
+            SendToMessageBroker(subscriberErrorMessage);
         }
 
         /// <inheritdoc />
@@ -238,8 +238,9 @@ namespace Grumpy.RipplesMQ.Client
                 RequesterServiceName = _messageBusConfig.ServiceName,
                 RequestId = UniqueKeyUtility.Generate(),
                 Name = name,
-                Body = request,
-                ReplyQueue = $"{_queueNamePrefix}.{name}.{typeof(RequestMessage).Name}.Reply.{UniqueKeyUtility.Generate()}",
+                MessageBody = SerializeToJson(request),
+                MessageType = typeof(TRequest).FullName,
+                ReplyQueue = _queueNameUtility.ReplyQueue<RequestMessage>(name),
                 RequestDateTime = DateTimeOffset.Now
             };
 
@@ -247,7 +248,7 @@ namespace Grumpy.RipplesMQ.Client
 
             using (var queue = _queueFactory.CreateLocale(requestMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, true))
             {
-                _messageBrokerQueue.Send(requestMessage);
+                SendToMessageBroker(requestMessage);
 
                 message = await queue.ReceiveAsync(millisecondsTimeout, cancellationToken);
             }
@@ -260,8 +261,10 @@ namespace Grumpy.RipplesMQ.Client
                 case ResponseMessage responseMessage:
                     responseMessage.CompletedDateTime = DateTimeOffset.Now;
 
-                    if (responseMessage.Body is TResponse response)
-                        return response;
+                    if (responseMessage.MessageType == null && responseMessage.MessageBody == "null")
+                        return default(TResponse);
+                    if (responseMessage.MessageType == typeof(TResponse).FullName)
+                        return JsonConvert.DeserializeObject<TResponse>(responseMessage.MessageBody);
 
                     throw new InvalidMessageTypeException(requestMessage, responseMessage, typeof(TResponse), responseMessage.GetType());
 
@@ -285,7 +288,8 @@ namespace Grumpy.RipplesMQ.Client
                 ResponderServiceName = _messageBusConfig.ServiceName,
                 RequestId = requestMessage.RequestId,
                 ReplyQueue = replyQueue,
-                Body = response,
+                MessageBody = SerializeToJson(response),
+                MessageType = response?.GetType().FullName,
                 RequestDateTime = requestMessage.RequestDateTime,
                 ResponseDateTime = DateTimeOffset.Now,
                 CompletedDateTime = null
@@ -293,14 +297,29 @@ namespace Grumpy.RipplesMQ.Client
 
             if (responseMessage.RequesterServerName == responseMessage.ResponderServerName)
             {
-                using (var queue = _queueFactory.CreateLocale(responseMessage.ReplyQueue, true, LocaleQueueMode.TemporarySlave, true))
+                try
                 {
-                    queue.Send(responseMessage);
+                    using (var queue = _queueFactory.CreateLocale(responseMessage.ReplyQueue, true, LocaleQueueMode.TemporarySlave, true))
+                    {
+                        queue.Send(responseMessage);
+                    }
+                }
+                catch 
+                {
+                    SendToMessageBroker(responseMessage);
                 }
             }
-            else 
-                _messageBrokerQueue.Send(responseMessage);
+            else
+                SendToMessageBroker(responseMessage);
         }
+
+        private static string SerializeToJson(object response)
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+
+            return response.SerializeToJson(jsonSerializerSettings);
+        }
+
 
         /// <inheritdoc />
         public void SendResponseErrorMessage(string replyQueue, RequestMessage requestMessage, Exception exception)
@@ -320,7 +339,17 @@ namespace Grumpy.RipplesMQ.Client
                 CompletedDateTime = null
             };
 
-            _messageBrokerQueue.Send(responseErrorMessage);
+            SendToMessageBroker(responseErrorMessage);
+        }
+
+        /// <inheritdoc />
+        public void CheckServer()
+        {
+            lock (_messageBrokerQueue)
+            {
+                if (!_messageBrokerQueue.Exists())
+                    throw new MessageBrokerException(_messageBrokerQueue.Name);
+            }
         }
 
         /// <inheritdoc />
@@ -334,10 +363,52 @@ namespace Grumpy.RipplesMQ.Client
             if (!_disposed)
             {
                 if (disposing)
-                    _messageBrokerQueue?.Dispose();
+                {
+                    lock (_messageBrokerQueue)
+                    {
+                        _messageBrokerQueue?.Dispose();
+                    }
+                }
 
                 _disposed = true;
             }
+        }
+
+        private void SendToMessageBroker<T>(T responseMessage)
+        {
+            try
+            {
+                lock (_messageBrokerQueue)
+                {
+                    _messageBrokerQueue.Send(responseMessage);
+                }
+            }
+            catch (Exception)
+            {
+                lock (_messageBrokerQueue)
+                {
+                    _messageBrokerQueue?.Dispose();
+
+                    SetMessageBrokerQueue();
+                }
+
+                try
+                {
+                    lock (_messageBrokerQueue)
+                    {
+                        _messageBrokerQueue.Send(responseMessage);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    throw new MessageBrokerException(exception);
+                }
+            }
+        }
+
+        private void SetMessageBrokerQueue()
+        {
+            _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true);
         }
     }
 }

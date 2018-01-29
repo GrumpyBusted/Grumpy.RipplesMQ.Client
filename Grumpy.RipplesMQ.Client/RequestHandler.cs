@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
-using Grumpy.Common;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client
 {
@@ -36,12 +36,12 @@ namespace Grumpy.RipplesMQ.Client
         public string QueueName { get; }
 
         /// <inheritdoc />
-        public RequestHandler(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name)
+        public RequestHandler(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, IQueueNameUtility queueNameUtility)
         {
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             Name = name;
-            QueueName = $"{messageBusConfig.ServiceName.Replace("$", ".")}.{Name}.{UniqueKeyUtility.Generate()}";
+            QueueName = queueNameUtility.Build(Name);
         }
 
         /// <summary>
@@ -135,12 +135,13 @@ namespace Grumpy.RipplesMQ.Client
         {
             if (message is RequestMessage requestMessage)
             {
-                if (requestMessage.Body.GetType() != _requestType)
-                    throw new InvalidMessageTypeException(message, _requestType, requestMessage.Body.GetType());
+                if (requestMessage.MessageType != _requestType.ToString())
+                    throw new InvalidMessageTypeException(message, _requestType, requestMessage.MessageType);
 
-                var response = _handler != null ? _handler(requestMessage.Body) : _cancelableHandler(requestMessage.Body, cancellationToken);
+                var request = JsonConvert.DeserializeObject(requestMessage.MessageBody, _requestType);
+                var response = _handler != null ? _handler(request) : _cancelableHandler(request, cancellationToken);
 
-                if (response.GetType() != _responseType)
+                if (response != null && response.GetType() != _responseType)
                     throw new InvalidMessageTypeException(message, response, _responseType, message.GetType());
 
                 _messageBroker.SendResponseMessage(requestMessage.ReplyQueue, requestMessage, response);

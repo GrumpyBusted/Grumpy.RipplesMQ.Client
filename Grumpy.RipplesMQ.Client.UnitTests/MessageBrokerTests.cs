@@ -21,6 +21,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
     {
         private readonly MessageBusConfig _messageBusConfig;
         private readonly IQueueFactory _queueFactory;
+        private readonly IQueueNameUtility _queueNameUtility;
         private readonly IProcessInformation _processInformation;
         private readonly CancellationToken _cancellationToken;
         private readonly ILocaleQueue _messageBrokerQueue;
@@ -33,12 +34,14 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             };
 
             _queueFactory = Substitute.For<IQueueFactory>();
+            _queueNameUtility = new QueueNameUtility("UniTests");
             _processInformation = Substitute.For<IProcessInformation>();
             _processInformation.MachineName.Returns("TestServer");
 
             _cancellationToken = new CancellationToken();
 
             _messageBrokerQueue = Substitute.For<ILocaleQueue>();
+            _messageBrokerQueue.Exists().Returns(true);
             _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(_messageBrokerQueue);
         }
 
@@ -198,10 +201,10 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             using (var messageBroker = CreateMessageBroker())
             {
-                messageBroker.SendSubscribeHandlerCompletedMessage("MySubscriber", new PublishMessage { Body = "MyMessage" });
+                messageBroker.SendSubscribeHandlerCompletedMessage("MySubscriber", CreatePublishMessage(null, "MyMessage"));
             }
 
-            _messageBrokerQueue.Received(1).Send(Arg.Is<SubscribeHandlerCompleteMessage>(m => m.MessageType == typeof(string)));
+            _messageBrokerQueue.Received(1).Send(Arg.Is<SubscribeHandlerCompleteMessage>(m => m.MessageType == typeof(string).FullName));
         }
 
         [Fact]
@@ -209,16 +212,26 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             using (var messageBroker = CreateMessageBroker())
             {
-                messageBroker.SendSubscribeHandlerErrorMessage("MySubscriber", false, new PublishMessage { Topic = "MyTopic", Body = "MyMessage" }, new Exception("MyException"));
+                messageBroker.SendSubscribeHandlerErrorMessage("MySubscriber", false, CreatePublishMessage("MyTopic", "MyMessage"), new Exception("MyException"));
             }
 
-            _messageBrokerQueue.Received(1).Send(Arg.Is<SubscribeHandlerErrorMessage>(m => m.Message.Body is string));
+            _messageBrokerQueue.Received(1).Send(Arg.Is<SubscribeHandlerErrorMessage>(m => m.Message.MessageType == typeof(string).FullName));
+        }
+
+        private static PublishMessage CreatePublishMessage(string topic, object message)
+        {
+            return new PublishMessage
+            {
+                Topic = topic, 
+                MessageBody = message.SerializeToJson(),
+                MessageType = message.GetType().FullName
+            };
         }
 
         [Fact]
         public void RequestResponseShouldSendToMessageBroker()
         {
-            ReplyQueue(new ResponseMessage { Body = "MyResponse" });
+            ReplyQueue(CreateResponseMessage("MyResponse"));
             
             RequestResponse();
 
@@ -228,7 +241,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         [Fact]
         public void RequestResponseShouldReturnResponse()
         {
-            ReplyQueue(new ResponseMessage { Body = "MyResponse" });
+            ReplyQueue(CreateResponseMessage("MyResponse"));
             
             RequestResponse().Should().Be("MyResponse");
         }
@@ -242,7 +255,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         [Fact]
         public void RequestResponseShouldReceiveReply()
         {
-            var queue = ReplyQueue(new ResponseMessage { Body = "MyResponse" });
+            var queue = ReplyQueue(CreateResponseMessage("MyResponse"));
 
             RequestResponse();
 
@@ -252,9 +265,18 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         [Fact]
         public void RequestResponseWithInvalidTypeShouldThrowException()
         {
-            ReplyQueue(new ResponseMessage { Body = 1 });
+            ReplyQueue(CreateResponseMessage(1));
 
             Assert.Throws<AggregateException>(() => RequestResponse());
+        }
+
+        private static ResponseMessage CreateResponseMessage(object message)
+        {
+            return new ResponseMessage
+            {
+                MessageBody = message.SerializeToJson(),
+                MessageType = message.GetType().FullName
+            };
         }
 
         [Fact]
@@ -366,7 +388,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private IMessageBroker CreateMessageBroker()
         {
-            return new MessageBroker(_messageBusConfig, _queueFactory, _processInformation);
+            return new MessageBroker(_messageBusConfig, _queueFactory, _processInformation, _queueNameUtility);
         }
 
         private ILocaleQueue ReplyQueue<T>() where T : new()

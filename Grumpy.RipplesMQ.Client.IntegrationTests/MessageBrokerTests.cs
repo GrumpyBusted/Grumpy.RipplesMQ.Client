@@ -14,10 +14,11 @@ namespace Grumpy.RipplesMQ.Client.IntegrationTests
             var messageBusConfig = new MessageBusConfig { ServiceName = "IntegrationTest" };
             var queueFactory = new QueueFactory();
             var processInformation = new ProcessInformation();
+            var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
 
             new MessageQueueManager().Delete(MessageBrokerConfig.LocaleQueueName, true);
 
-            Assert.Throws<MessageBrokerException>(() => new MessageBroker(messageBusConfig, queueFactory, processInformation));
+            Assert.Throws<MessageBrokerException>(() => new MessageBroker(messageBusConfig, queueFactory, processInformation, queueNameUtility));
         }
     }
 }

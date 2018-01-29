@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,6 @@ namespace Grumpy.RipplesMQ.Client
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class MessageBus : IMessageBus
     {
-        private readonly MessageBusConfig _messageBusConfig;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
         private readonly List<SubscribeHandler> _subscribeHandlers;
@@ -26,20 +26,22 @@ namespace Grumpy.RipplesMQ.Client
         private CancellationTokenRegistration _cancellationTokenRegistration;
         private bool _disposed;
         private TimerTask _handshakeTask;
+        internal bool SyncMode = false;
+        private readonly IQueueNameUtility _queueNameUtility;
 
         /// <inheritdoc />
-        public MessageBus(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory)
+        public MessageBus(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, IQueueNameUtility queueNameUtility)
         {
-            _messageBusConfig = messageBusConfig;
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
+            _queueNameUtility = queueNameUtility;
 
             _subscribeHandlers = new List<SubscribeHandler>();
             _requestHandlers = new List<RequestHandler>();
         }
 
         /// <inheritdoc />
-        public void Start(CancellationToken cancellationToken, bool syncMode = false)
+        public void Start(CancellationToken cancellationToken)
         {
             if (_cancellationTokenSource != null)
                 throw new ArgumentException("Message Bus not Stopped");
@@ -47,22 +49,26 @@ namespace Grumpy.RipplesMQ.Client
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationTokenRegistration = cancellationToken.Register(Stop);
 
+            _messageBroker.CheckServer();
+
             _messageBroker.RegisterMessageBusService(_cancellationTokenSource.Token);
 
             // ReSharper disable once InconsistentlySynchronizedField
             foreach (var subscribeHandler in _subscribeHandlers)
             {
-                subscribeHandler.Start(_cancellationTokenSource.Token, syncMode);
+                subscribeHandler.Start(_cancellationTokenSource.Token, SyncMode);
             }
 
             // ReSharper disable once InconsistentlySynchronizedField
             foreach (var requestHandler in _requestHandlers)
             {
-                requestHandler.Start(_cancellationTokenSource.Token, syncMode);
+                requestHandler.Start(_cancellationTokenSource.Token, SyncMode);
             }
 
             _handshakeTask = new TimerTask();
-            _handshakeTask.Start(SendHandshake, 30000, _cancellationTokenSource.Token);
+
+            if (!SyncMode)
+                _handshakeTask.Start(SendHandshake, 30000, _cancellationTokenSource.Token);
         }
 
         /// <inheritdoc />
@@ -82,6 +88,8 @@ namespace Grumpy.RipplesMQ.Client
 
         private void SendHandshake()
         {
+            _messageBroker.CheckServer();
+
             var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable });
             var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler { Name = s.Name, QueueName = s.QueueName });
 
@@ -126,7 +134,7 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateSubscribeHandler(config, name).Set(durable, typeof(T), multiThreaded, (m, c) => handler((T)m, c));
+            CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, (m, c) => handler((T)m, c));
         }
 
         /// <inheritdoc />
@@ -153,7 +161,7 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateSubscribeHandler(config, name).Set(durable, typeof(T), multiThreaded, m => handler((T)m));
+            CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, m => handler((T)m));
         }
 
         /// <inheritdoc />
@@ -245,7 +253,7 @@ namespace Grumpy.RipplesMQ.Client
             }
         }
 
-        private SubscribeHandler CreateSubscribeHandler(PublishSubscribeConfig config, string name)
+        private SubscribeHandler CreateSubscribeHandler(PublishSubscribeConfig config, string name, bool durable)
         {
             if (_cancellationTokenSource != null)
                 throw new ArgumentException("Cannot add Handler after Start");
@@ -255,7 +263,7 @@ namespace Grumpy.RipplesMQ.Client
             if (name.NullOrWhiteSpace())
                 throw new ArgumentException("Invalid subscriber name", nameof(name));
 
-            var subscribeHandler = new SubscribeHandler(_messageBusConfig, _messageBroker, _queueHandlerFactory, name, config.Topic);
+            var subscribeHandler = new SubscribeHandler(_messageBroker, _queueHandlerFactory, name, config.Topic, durable, _queueNameUtility);
 
             lock (_subscribeHandlers)
             {
@@ -275,7 +283,7 @@ namespace Grumpy.RipplesMQ.Client
 
             ValidateRequestResponseConfig(config);
 
-            var requestHandler = new RequestHandler(_messageBusConfig, _messageBroker, _queueHandlerFactory, config.Name);
+            var requestHandler = new RequestHandler(_messageBroker, _queueHandlerFactory, config.Name, _queueNameUtility);
 
             lock (_requestHandlers)
             {

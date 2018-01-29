@@ -39,10 +39,11 @@ namespace Grumpy.RipplesMQ.Client
             };
 
             var queueFactory = new QueueFactory();
-            var messageBroker = new MessageBroker(messageBusConfig, queueFactory, processInformation);
+            var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
+            var messageBroker = new MessageBroker(messageBusConfig, queueFactory, processInformation, queueNameUtility);
             var queueHandlerFactory = new QueueHandlerFactory(queueFactory);
 
-            return new MessageBus(messageBusConfig, messageBroker, queueHandlerFactory);
+            return new MessageBus(messageBroker, queueHandlerFactory, queueNameUtility);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Grumpy.RipplesMQ.Client")]
@@ -12,3 +13,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: Guid("9c3ec058-af17-42ea-ae3f-98a8c3ba4e67")]
 [assembly: AssemblyVersion("1.0.*")]
+[assembly: InternalsVisibleTo("Grumpy.RipplesMQ.Client.UnitTests")]

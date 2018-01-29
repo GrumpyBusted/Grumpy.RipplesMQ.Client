@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using FluentAssertions;
+using Grumpy.Json;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
@@ -12,20 +13,16 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 {
     public class RequestHandlerTests
     {
-        private readonly MessageBusConfig _messageBusConfig;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
+        private readonly IQueueNameUtility _queueNameUtility;
         private readonly CancellationToken _cancellationToken;
 
         public RequestHandlerTests()
         {
-            _messageBusConfig = new MessageBusConfig
-            {
-                ServiceName = "UnitTest"
-            };
-
             _messageBroker = Substitute.For<IMessageBroker>();
             _queueHandlerFactory = Substitute.For<IQueueHandlerFactory>();
+            _queueNameUtility = Substitute.For<IQueueNameUtility>();
             _cancellationToken = new CancellationToken();
         }
 
@@ -68,7 +65,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                     message = (string)a;
                     return a;
                 });
-                cut.MessageHandler(new RequestMessage { Body = "Message" }, _cancellationToken);
+                cut.MessageHandler(CreateRequestMessage("Message"), _cancellationToken);
                 message.Should().Be("Message");
             }
         }
@@ -84,7 +81,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                     message = (string)a;
                     return a;
                 });
-                cut.MessageHandler(new RequestMessage { Body = "Message" }, _cancellationToken);
+                cut.MessageHandler(CreateRequestMessage("Message"), _cancellationToken);
                 message.Should().Be("Message");
             }
         }
@@ -94,8 +91,8 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             using (var cut = CreateRequestHandler())
             {
-                cut.Set(typeof(string), typeof(string), true, a => a);
-                Assert.Throws<InvalidMessageTypeException>(() => cut.MessageHandler(new RequestMessage { Body = 123 }, _cancellationToken));
+                cut.Set(typeof(int), typeof(string), true, a => a);
+                Assert.Throws<InvalidMessageTypeException>(() => cut.MessageHandler(CreateRequestMessage("Message"), _cancellationToken));
             }
         }
 
@@ -105,7 +102,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             using (var cut = CreateRequestHandler())
             {
                 cut.Set(typeof(string), typeof(int), true, a => a);
-                Assert.Throws<InvalidMessageTypeException>(() => cut.MessageHandler(new RequestMessage { Body = "Message" }, _cancellationToken));
+                Assert.Throws<InvalidMessageTypeException>(() => cut.MessageHandler(CreateRequestMessage("Message"), _cancellationToken));
             }
         }
 
@@ -115,7 +112,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             using (var cut = CreateRequestHandler())
             {
                 cut.Set(typeof(string), typeof(string), true, a => a);
-                cut.MessageHandler(new RequestMessage { Body = "Message" }, _cancellationToken);
+                cut.MessageHandler(CreateRequestMessage("Message"), _cancellationToken);
             }
             _messageBroker.Received(1).SendResponseMessage(Arg.Any<string>(), Arg.Any<RequestMessage>(), Arg.Any<object>());
         }
@@ -126,9 +123,18 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             using (var cut = CreateRequestHandler())
             {
                 cut.Set(typeof(string), typeof(string), true, a => a);
-                cut.ErrorHandler(new RequestMessage { Body = "Message" }, new Exception());
+                cut.ErrorHandler(CreateRequestMessage("Message"), new Exception());
             }
             _messageBroker.Received(1).SendResponseErrorMessage(Arg.Any<string>(), Arg.Any<RequestMessage>(), Arg.Any<Exception>());
+        }
+
+        private static RequestMessage CreateRequestMessage(object message)
+        {
+            return new RequestMessage
+            {
+                MessageBody = message.SerializeToJson(),
+                MessageType = message.GetType().FullName
+            };
         }
 
         [Fact]
@@ -143,7 +149,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private RequestHandler CreateRequestHandler()
         {
-            return new RequestHandler(_messageBusConfig, _messageBroker, _queueHandlerFactory, "MyRequest");
+            return new RequestHandler(_messageBroker, _queueHandlerFactory, "MyRequest", _queueNameUtility);
         }
     }
 }

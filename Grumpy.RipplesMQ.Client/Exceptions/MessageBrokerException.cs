@@ -21,5 +21,13 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         {
             Data.Add(nameof(queueName), queueName);
         }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Message Broker Server Missing Exception
+        /// </summary>
+        public MessageBrokerException(Exception exception) : base("Message Broker Exception", exception)
+        {
+        }
     }
 }

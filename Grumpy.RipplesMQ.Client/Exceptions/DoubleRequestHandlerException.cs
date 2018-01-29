@@ -22,7 +22,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <exception cref="T:System.NotImplementedException"></exception>
         public DoubleRequestHandlerException(RequestResponseConfig config) : base("Double Request Handler Exception")
         {
-            Data.Add(nameof(config), config.TrySerializeToJson());
+            Data.Add(nameof(config), config?.TrySerializeToJson());
         }
     }
 }

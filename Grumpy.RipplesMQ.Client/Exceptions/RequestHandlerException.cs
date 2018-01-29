@@ -22,7 +22,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <param name="responseErrorMessage">Response error message</param>
         public RequestHandlerException(RequestMessage requestMessage, ResponseErrorMessage responseErrorMessage) : base("Exception in Request Handler", responseErrorMessage.Exception)
         {
-            Data.Add(nameof(requestMessage), requestMessage.TrySerializeToJson());
+            Data.Add(nameof(requestMessage), requestMessage?.TrySerializeToJson());
             Data.Add(nameof(responseErrorMessage), responseErrorMessage.TrySerializeToJson());
         }
     }

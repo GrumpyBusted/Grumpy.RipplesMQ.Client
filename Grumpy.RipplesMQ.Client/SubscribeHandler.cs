@@ -5,6 +5,7 @@ using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client
 {
@@ -41,44 +42,43 @@ namespace Grumpy.RipplesMQ.Client
         /// <summary>
         /// Is Subscribe Handler Durable
         /// </summary>
-        public bool Durable { get; private set; }
+        public bool Durable { get; }
 
         /// <inheritdoc />
-        public SubscribeHandler(MessageBusConfig messageBusConfig, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, string topic)
+        public SubscribeHandler(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, string topic, bool durable, IQueueNameUtility queueNameUtility)
         {
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             Name = name;
             Topic = topic;
-            QueueName = $"{messageBusConfig.ServiceName.Replace("$", ".")}.{Topic}.{Name}";
+            Durable = durable;
+            QueueName = queueNameUtility.Build(Topic, Name, Durable);
         }
 
         /// <summary>
         /// Set Subscribe Handler
         /// </summary>
-        /// <param name="durable">Is subscribe queue durable</param>
         /// <param name="messageType">Message type</param>
         /// <param name="multiThreaded">Is handler method Thread safe</param>
         /// <param name="handler">Call back method for handler</param>
-        public void Set(bool durable, Type messageType, bool multiThreaded, Action<object> handler)
+        public void Set(Type messageType, bool multiThreaded, Action<object> handler)
         {
             _handler = handler;
          
-            Set(durable, messageType, multiThreaded);
+            Set(messageType, multiThreaded);
         }
 
         /// <summary>
         /// Set Subscribe Handler
         /// </summary>
-        /// <param name="durable">Is subscribe queue durable</param>
         /// <param name="messageType">Message type</param>
         /// <param name="multiThreaded">Is handler method Thread safe</param>
         /// <param name="handler">Call back method for handler</param>
-        public void Set(bool durable, Type messageType, bool multiThreaded, Action<object, CancellationToken> handler)
+        public void Set(Type messageType, bool multiThreaded, Action<object, CancellationToken> handler)
         {
             _cancelableHandler = handler;
 
-            Set(durable, messageType, multiThreaded);
+            Set(messageType, multiThreaded);
         }
 
         /// <summary>
@@ -125,12 +125,11 @@ namespace Grumpy.RipplesMQ.Client
             }
         }
 
-        private void Set(bool durable, Type messageType, bool multiThreaded)
+        private void Set(Type messageType, bool multiThreaded)
         {
             if (_queueHandler != null)
                 throw new ArgumentException("Cannot Set Handler Twice");
 
-            Durable = durable;
             _messageType = messageType;
             _multiThreaded = multiThreaded;
 
@@ -146,13 +145,13 @@ namespace Grumpy.RipplesMQ.Client
         {
             if (message is PublishMessage publishMessage)
             {
-                if (publishMessage.Body.GetType() != _messageType)
+                if (publishMessage.MessageType != _messageType.ToString())
                     throw new InvalidMessageTypeException(publishMessage, _messageType, message.GetType());
 
                 if (_handler != null)
-                    _handler(publishMessage.Body);
+                    _handler(JsonConvert.DeserializeObject(publishMessage.MessageBody, _messageType));
                 else
-                    _cancelableHandler(publishMessage.Body, cancellationToken);
+                    _cancelableHandler(JsonConvert.DeserializeObject(publishMessage.MessageBody, _messageType), cancellationToken);
 
                 _messageBroker.SendSubscribeHandlerCompletedMessage(Name, publishMessage);
             }

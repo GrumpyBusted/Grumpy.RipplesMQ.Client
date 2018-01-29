@@ -23,7 +23,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <exception cref="T:System.NotImplementedException"></exception>
         public DoubleSubscribeHandlerException(PublishSubscribeConfig config, string name) : base("Double Subscribe Handler Exception")
         {
-            Data.Add(nameof(config), config.TrySerializeToJson());
+            Data.Add(nameof(config), config?.TrySerializeToJson());
             Data.Add(nameof(name), name);
         }
     }

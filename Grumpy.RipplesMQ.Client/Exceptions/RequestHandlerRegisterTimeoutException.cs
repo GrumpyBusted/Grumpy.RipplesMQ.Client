@@ -21,7 +21,7 @@ namespace Grumpy.RipplesMQ.Client.Exceptions
         /// <param name="requestHandlerRegisterMessage">Request Handler Registration Message</param>
         public RequestHandlerRegisterTimeoutException(RequestHandlerRegisterMessage requestHandlerRegisterMessage) : base("Register of Message Bus Request Handler Timeout Exception")
         {
-            Data.Add(nameof(requestHandlerRegisterMessage), requestHandlerRegisterMessage.TrySerializeToJson());
+            Data.Add(nameof(requestHandlerRegisterMessage), requestHandlerRegisterMessage?.TrySerializeToJson());
         }
     }
 }

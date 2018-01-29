@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
 using Grumpy.Common.Threading;
+using Grumpy.Json;
 using Grumpy.MessageQueue;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
@@ -13,6 +14,7 @@ using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Newtonsoft.Json;
 using Task = System.Threading.Tasks.Task;
 
 namespace Grumpy.RipplesMQ.Client.TestTools
@@ -67,12 +69,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             _queueFactory = new TestQueueFactory(this);
 
             var processInformation = new ProcessInformation();
+            var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
 
-            _messageBroker = new MessageBroker(messageBusConfig, _queueFactory, processInformation);
+            _messageBroker = new MessageBroker(messageBusConfig, _queueFactory, processInformation, queueNameUtility);
 
             var queueHandlerFactory = new QueueHandlerFactory(_queueFactory);
 
-            MessageBus = new MessageBus(messageBusConfig, this, queueHandlerFactory);
+            MessageBus = new MessageBus(this, queueHandlerFactory, queueNameUtility);
         }
 
         /// <summary>
@@ -150,7 +153,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             if (queue.Value != null)
             {
-                MockMessage(queue.Value, new RequestMessage { Body = ResponseMessage(request), Name = config.Name, ReplyQueue = replyQueue }, true);
+                MockMessage(queue.Value, new RequestMessage
+                {
+                    MessageBody = SerializeToJson(request),
+                    MessageType = typeof(TRequest).FullName,
+                    Name = config.Name, 
+                    ReplyQueue = replyQueue
+                }, true);
 
                 // ReSharper disable once ImplicitlyCapturedClosure
                 TimerUtility.WaitForIt(() => _responses.Any(r => r.ReplyQueue == replyQueue), Debugger.IsAttached ? 360000 : config.MillisecondsTimeout);
@@ -158,7 +167,9 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             Thread.Sleep(100);
 
-            return (TResponse)_responses.FirstOrDefault(r => r.ReplyQueue == replyQueue)?.Body;
+            var response = _responses.FirstOrDefault(r => r.ReplyQueue == replyQueue);
+
+            return JsonConvert.DeserializeObject<TResponse>(response?.MessageBody);
         }
 
         /// <inheritdoc />
@@ -243,7 +254,12 @@ namespace Grumpy.RipplesMQ.Client.TestTools
                 return Task.FromResult((TResponse)requestMock?.Response);
             }
 
-            throw new RequestResponseTimeoutException(new RequestMessage { Body = request, Name = name }, millisecondsTimeout);
+            throw new RequestResponseTimeoutException(new RequestMessage
+            {
+                MessageBody = SerializeToJson(request),
+                MessageType = typeof(TRequest).FullName,
+                Name = name
+            }, millisecondsTimeout);
         }
 
         /// <inheritdoc />
@@ -266,6 +282,11 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             {
                 --_pendingMessages;
             }
+        }
+
+        /// <inheritdoc />
+        public void CheckServer()
+        {
         }
 
         /// <inheritdoc />
@@ -297,12 +318,14 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
         private static PublishMessage CreatePublishMessage<T>(PublishSubscribeConfig publishSubscribeConfig, T message)
         {
-            return new PublishMessage { Body = message, MessageId = UniqueKeyUtility.Generate(), Persistent = publishSubscribeConfig.Persistent, ReplyQueue = null, Topic = publishSubscribeConfig.Topic };
-        }
-
-        private static object ResponseMessage(object message)
-        {
-            return message;
+            return new PublishMessage
+            {
+                MessageBody = SerializeToJson(message),
+                MessageType = typeof(T).FullName,
+                MessageId = UniqueKeyUtility.Generate(), 
+                Persistent = publishSubscribeConfig.Persistent, 
+                ReplyQueue = null, Topic = publishSubscribeConfig.Topic
+            };
         }
 
         private void WaitForIt()
@@ -324,6 +347,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         private void MockMessage<T>(string queueName, T message)
         {
             MockMessage(MockQueue(queueName), message, true);
+        }
+
+        private static string SerializeToJson(object response)
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All};
+
+            return response.SerializeToJson(jsonSerializerSettings);
         }
     }
 }
