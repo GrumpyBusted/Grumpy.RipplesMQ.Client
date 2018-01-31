@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading;
+using Grumpy.Logging;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client
@@ -15,6 +17,7 @@ namespace Grumpy.RipplesMQ.Client
     /// </summary>
     public sealed class SubscribeHandler : IDisposable
     {
+        private readonly ILogger _logger;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
         private IQueueHandler _queueHandler;
@@ -45,8 +48,9 @@ namespace Grumpy.RipplesMQ.Client
         public bool Durable { get; }
 
         /// <inheritdoc />
-        public SubscribeHandler(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, string topic, bool durable, IQueueNameUtility queueNameUtility)
+        public SubscribeHandler(ILogger logger, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, string topic, bool durable, IQueueNameUtility queueNameUtility)
         {
+            _logger = logger;
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             Name = name;
@@ -93,7 +97,9 @@ namespace Grumpy.RipplesMQ.Client
 
             _messageBroker.RegisterSubscribeHandler(Name, Topic, Durable, QueueName, cancellationToken);
 
-            _queueHandler.Start(QueueName, true, Durable ? LocaleQueueMode.DurableCreate : LocaleQueueMode.TemporaryMaster, true, MessageHandler, ErrorHandler, null, 1000, _multiThreaded, syncMode, cancellationToken);
+            _queueHandler.Start(QueueName, true, Durable ? LocaleQueueMode.DurableCreate : LocaleQueueMode.TemporaryMaster, true, MessageHandler, (o, exception) => ErrorHandler(o, exception), null, 1000, _multiThreaded, syncMode, cancellationToken);
+
+            _logger.Information("Subscribe Handler started {@SubscribeHandler}", this);
         }
 
         /// <summary>
@@ -102,6 +108,8 @@ namespace Grumpy.RipplesMQ.Client
         public void Stop()
         {
             _queueHandler?.Stop();
+
+            _logger.Information("Subscribe Handler stopped {@SubscribeHandler}", this);
         }
 
         /// <inheritdoc />
@@ -143,6 +151,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="cancellationToken">Cancellation Token</param>
         public void MessageHandler(object message, CancellationToken cancellationToken)
         {
+            _logger.Debug("Subscribe Handler received message {@SubscribeHandler} {@Message} {Type}", this, message, message.GetType().FullName);
+
             if (message is PublishMessage publishMessage)
             {
                 if (publishMessage.MessageType != _messageType.ToString())
@@ -166,6 +176,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="exception">Exception</param>
         public void ErrorHandler(object message, Exception exception)
         {
+            _logger.Warning(exception, "Subscribe Handler received message in Error Handler {@SubscribeHandler} {@Message} {Type}", this, message, message.GetType().FullName);
+
             if (message is PublishMessage publishMessage)
                 _messageBroker.SendSubscribeHandlerErrorMessage(Name, Durable, publishMessage, exception);
             else

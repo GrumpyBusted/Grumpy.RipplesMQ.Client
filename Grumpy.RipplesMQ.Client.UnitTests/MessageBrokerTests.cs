@@ -12,6 +12,7 @@ using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -388,7 +389,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private IMessageBroker CreateMessageBroker()
         {
-            return new MessageBroker(_messageBusConfig, _queueFactory, _processInformation, _queueNameUtility);
+            return new MessageBroker(Substitute.For<ILogger>(), _messageBusConfig, _queueFactory, _processInformation, _queueNameUtility);
         }
 
         private ILocaleQueue ReplyQueue<T>() where T : new()

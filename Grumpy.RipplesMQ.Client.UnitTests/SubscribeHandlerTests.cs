@@ -6,6 +6,7 @@ using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -131,7 +132,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private SubscribeHandler CreateSubscribeHandler()
         {
-            return new SubscribeHandler(_messageBroker, _queueHandlerFactory, "MySubscriber", "MyTopic", true, _queueNameUtility);
+            return new SubscribeHandler(Substitute.For<ILogger>(), _messageBroker, _queueHandlerFactory, "MySubscriber", "MyTopic", true, _queueNameUtility);
         }
     }
 }

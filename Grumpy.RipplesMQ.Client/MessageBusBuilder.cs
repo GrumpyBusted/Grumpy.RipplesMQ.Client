@@ -1,8 +1,10 @@
 ﻿using Grumpy.Common;
-using Grumpy.Common.Extensions;
+using Grumpy.Common.Interfaces;
 using Grumpy.MessageQueue;
 using Grumpy.MessageQueue.Msmq;
 using Grumpy.RipplesMQ.Client.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Grumpy.RipplesMQ.Client
 {
@@ -11,16 +13,38 @@ namespace Grumpy.RipplesMQ.Client
     /// </summary>
     public class MessageBusBuilder
     {
+        private readonly IProcessInformation _processInformation;
         private string _serviceName;
+        private ILogger _logger;
+
+        /// <inheritdoc />
+        public MessageBusBuilder()
+        {
+            _processInformation = new ProcessInformation();
+            _serviceName = _processInformation.ProcessName;
+            _logger = NullLogger.Instance;
+        }
 
         /// <summary>
         /// Set Service Name
         /// </summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">Service Name</param>
         /// <returns></returns>
         public MessageBusBuilder WithServiceName(string serviceName)
         {
             _serviceName = serviceName;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Set Logger
+        /// </summary>
+        /// <param name="logger">The Logger</param>
+        /// <returns></returns>
+        public MessageBusBuilder WithLogger(ILogger logger)
+        {
+            _logger = logger;
 
             return this;
         }
@@ -31,19 +55,17 @@ namespace Grumpy.RipplesMQ.Client
         /// <returns></returns>
         public IMessageBus Build()
         {
-            var processInformation = new ProcessInformation();
-
             var messageBusConfig = new MessageBusConfig
             {
-                ServiceName = _serviceName.NullOrEmpty() ? processInformation.ProcessName : _serviceName
+                ServiceName = _serviceName
             };
 
-            var queueFactory = new QueueFactory();
+            var queueFactory = new QueueFactory(_logger);
             var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
-            var messageBroker = new MessageBroker(messageBusConfig, queueFactory, processInformation, queueNameUtility);
-            var queueHandlerFactory = new QueueHandlerFactory(queueFactory);
+            var messageBroker = new MessageBroker(_logger, messageBusConfig, queueFactory, _processInformation, queueNameUtility);
+            var queueHandlerFactory = new QueueHandlerFactory(_logger, queueFactory);
 
-            return new MessageBus(messageBroker, queueHandlerFactory, queueNameUtility);
+            return new MessageBus(_logger, messageBroker, queueHandlerFactory, queueNameUtility);
         }
 
         /// <summary>

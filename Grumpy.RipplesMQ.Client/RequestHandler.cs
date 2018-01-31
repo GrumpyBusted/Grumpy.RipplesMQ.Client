@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading;
+using Grumpy.Logging;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Grumpy.RipplesMQ.Client
@@ -15,6 +17,7 @@ namespace Grumpy.RipplesMQ.Client
     /// </summary>
     public sealed class RequestHandler : IDisposable
     {
+        private readonly ILogger _logger;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
         private IQueueHandler _queueHandler;
@@ -36,8 +39,9 @@ namespace Grumpy.RipplesMQ.Client
         public string QueueName { get; }
 
         /// <inheritdoc />
-        public RequestHandler(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, IQueueNameUtility queueNameUtility)
+        public RequestHandler(ILogger logger, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, string name, IQueueNameUtility queueNameUtility)
         {
+            _logger = logger;
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             Name = name;
@@ -83,7 +87,9 @@ namespace Grumpy.RipplesMQ.Client
                 throw new ArgumentException("Cannot Start before Set");
 
             _messageBroker.RegisterRequestHandler(Name, QueueName, cancellationToken);
-            _queueHandler.Start(QueueName, true, LocaleQueueMode.TemporaryMaster, true, MessageHandler, ErrorHandler, null, 1000, _multiThreaded, syncMode, cancellationToken);
+            _queueHandler.Start(QueueName, true, LocaleQueueMode.TemporaryMaster, true, MessageHandler, (o, exception) => ErrorHandler(o, exception), null, 1000, _multiThreaded, syncMode, cancellationToken);
+
+            _logger.Information("Request Handler started {@RequestHandler}", this);
         }
         
         /// <summary>
@@ -92,6 +98,8 @@ namespace Grumpy.RipplesMQ.Client
         public void Stop()
         {
             _queueHandler?.Stop();
+
+            _logger.Information("Request Handler stopped {@RequestHandler}", this);
         }
 
         /// <inheritdoc />
@@ -133,6 +141,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="cancellationToken">Cancellation Token</param>
         public void MessageHandler(object message, CancellationToken cancellationToken)
         {
+            _logger.Debug("Request Handler received message {@RequestHandler} {@Message} {Type}", this, message, message.GetType().FullName);
+
             if (message is RequestMessage requestMessage)
             {
                 if (requestMessage.MessageType != _requestType.ToString())
@@ -157,6 +167,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="exception">Exception</param>
         public void ErrorHandler(object message, Exception exception)
         {
+            _logger.Warning(exception, "Request Handler received message in Error Handler {@RequestHandler} {@Message} {Type}", this, message, message.GetType().FullName);
+
             if (message is RequestMessage requestMessage)
                 _messageBroker.SendResponseErrorMessage(requestMessage.ReplyQueue, requestMessage, exception);
             else

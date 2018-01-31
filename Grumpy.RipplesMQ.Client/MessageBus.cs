@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
 using Grumpy.Common.Extensions;
 using Grumpy.Common.Threading;
+using Grumpy.Logging;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
+using Microsoft.Extensions.Logging;
 
 namespace Grumpy.RipplesMQ.Client
 {
@@ -18,6 +19,7 @@ namespace Grumpy.RipplesMQ.Client
     // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class MessageBus : IMessageBus
     {
+        private readonly ILogger _logger;
         private readonly IMessageBroker _messageBroker;
         private readonly IQueueHandlerFactory _queueHandlerFactory;
         private readonly List<SubscribeHandler> _subscribeHandlers;
@@ -30,11 +32,12 @@ namespace Grumpy.RipplesMQ.Client
         private readonly IQueueNameUtility _queueNameUtility;
 
         /// <inheritdoc />
-        public MessageBus(IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, IQueueNameUtility queueNameUtility)
+        public MessageBus(ILogger logger, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, IQueueNameUtility queueNameUtility)
         {
             _messageBroker = messageBroker;
             _queueHandlerFactory = queueHandlerFactory;
             _queueNameUtility = queueNameUtility;
+            _logger = logger;
 
             _subscribeHandlers = new List<SubscribeHandler>();
             _requestHandlers = new List<RequestHandler>();
@@ -43,6 +46,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <inheritdoc />
         public void Start(CancellationToken cancellationToken)
         {
+            _logger.Information("Message Bus starting");
+
             if (_cancellationTokenSource != null)
                 throw new ArgumentException("Message Bus not Stopped");
 
@@ -74,6 +79,8 @@ namespace Grumpy.RipplesMQ.Client
         /// <inheritdoc />
         public void Stop()
         {
+            _logger.Information("Message Bus stopping");
+
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
@@ -263,7 +270,7 @@ namespace Grumpy.RipplesMQ.Client
             if (name.NullOrWhiteSpace())
                 throw new ArgumentException("Invalid subscriber name", nameof(name));
 
-            var subscribeHandler = new SubscribeHandler(_messageBroker, _queueHandlerFactory, name, config.Topic, durable, _queueNameUtility);
+            var subscribeHandler = new SubscribeHandler(_logger, _messageBroker, _queueHandlerFactory, name, config.Topic, durable, _queueNameUtility);
 
             lock (_subscribeHandlers)
             {
@@ -283,7 +290,7 @@ namespace Grumpy.RipplesMQ.Client
 
             ValidateRequestResponseConfig(config);
 
-            var requestHandler = new RequestHandler(_messageBroker, _queueHandlerFactory, config.Name, _queueNameUtility);
+            var requestHandler = new RequestHandler(_logger, _messageBroker, _queueHandlerFactory, config.Name, _queueNameUtility);
 
             lock (_requestHandlers)
             {

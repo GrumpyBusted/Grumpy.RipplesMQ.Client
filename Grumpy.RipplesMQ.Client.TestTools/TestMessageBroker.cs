@@ -14,6 +14,7 @@ using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
 using Grumpy.RipplesMQ.Shared.Messages;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Task = System.Threading.Tasks.Task;
 
@@ -61,6 +62,8 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         /// <inheritdoc />
         public TestMessageBroker()
         {
+            var logger = NullLogger.Instance;
+
             var messageBusConfig = new MessageBusConfig
             {
                 ServiceName = "Grumpy.RipplesMQ.TestTools"
@@ -71,11 +74,11 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             var processInformation = new ProcessInformation();
             var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
 
-            _messageBroker = new MessageBroker(messageBusConfig, _queueFactory, processInformation, queueNameUtility);
+            _messageBroker = new MessageBroker(logger, messageBusConfig, _queueFactory, processInformation, queueNameUtility);
 
-            var queueHandlerFactory = new QueueHandlerFactory(_queueFactory);
+            var queueHandlerFactory = new QueueHandlerFactory(logger, _queueFactory);
 
-            MessageBus = new MessageBus(this, queueHandlerFactory, queueNameUtility);
+            MessageBus = new MessageBus(logger, this, queueHandlerFactory, queueNameUtility);
         }
 
         /// <summary>

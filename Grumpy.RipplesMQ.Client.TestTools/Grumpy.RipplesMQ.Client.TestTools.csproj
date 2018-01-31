@@ -48,8 +48,11 @@
     <PackageReference Include="Grumpy.Common">
       <Version>1.2.7</Version>
     </PackageReference>
+    <PackageReference Include="Grumpy.Logging">
+      <Version>0.9.3</Version>
+    </PackageReference>
     <PackageReference Include="Grumpy.MessageQueue">
-      <Version>1.2.3</Version>
+      <Version>1.2.6</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Config">
       <Version>1.2.2</Version>

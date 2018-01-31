@@ -8,6 +8,7 @@ using Grumpy.MessageQueue.Interfaces;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Client.Interfaces;
 using Grumpy.RipplesMQ.Config;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -402,7 +403,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
         private IMessageBus CreateMessageBus()
         {
-            return new MessageBus(_messageBroker, _queueHandlerFactory, _queueNameUtility) {SyncMode = true};
+            return new MessageBus(Substitute.For<ILogger>(), _messageBroker, _queueHandlerFactory, _queueNameUtility) {SyncMode = true};
         }
     }
 }

@@ -2,6 +2,8 @@
 using Grumpy.MessageQueue.Msmq;
 using Grumpy.RipplesMQ.Client.Exceptions;
 using Grumpy.RipplesMQ.Shared.Config;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Xunit;
 
 namespace Grumpy.RipplesMQ.Client.IntegrationTests
@@ -12,13 +14,13 @@ namespace Grumpy.RipplesMQ.Client.IntegrationTests
         public void RegisterMessageBusServiceShouldSendMessage()
         {
             var messageBusConfig = new MessageBusConfig { ServiceName = "IntegrationTest" };
-            var queueFactory = new QueueFactory();
+            var queueFactory = new QueueFactory(Substitute.For<ILogger>());
             var processInformation = new ProcessInformation();
             var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
 
             new MessageQueueManager().Delete(MessageBrokerConfig.LocaleQueueName, true);
 
-            Assert.Throws<MessageBrokerException>(() => new MessageBroker(messageBusConfig, queueFactory, processInformation, queueNameUtility));
+            Assert.Throws<MessageBrokerException>(() => new MessageBroker(Substitute.For<ILogger>(), messageBusConfig, queueFactory, processInformation, queueNameUtility));
         }
     }
 }
