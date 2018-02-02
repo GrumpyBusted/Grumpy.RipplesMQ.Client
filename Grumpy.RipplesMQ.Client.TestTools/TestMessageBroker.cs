@@ -338,7 +338,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
         private ILocaleQueue MockQueue(string name)
         {
-            return _queueFactory.CreateLocale(name, true, LocaleQueueMode.TemporaryMaster, true);
+            return _queueFactory.CreateLocale(name, true, LocaleQueueMode.TemporaryMaster, true, AccessMode.SendAndReceive);
         }
 
         private static void MockMessage<T>(IQueue queue, T message, bool onlyOnce)

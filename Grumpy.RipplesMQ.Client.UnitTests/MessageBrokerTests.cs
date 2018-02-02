@@ -43,7 +43,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
             _messageBrokerQueue = Substitute.For<ILocaleQueue>();
             _messageBrokerQueue.Exists().Returns(true);
-            _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(_messageBrokerQueue);
+            _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>(), Arg.Any<AccessMode>()).Returns(_messageBrokerQueue);
         }
 
         [Fact]
@@ -366,7 +366,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         public void SendResponseMessageToLocaleRequesterShouldSendToReplyQueue()
         {
             var replyQueue = Substitute.For<ILocaleQueue>();
-            _queueFactory.CreateLocale("RequestMyReplyQueue", Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(replyQueue);
+            _queueFactory.CreateLocale("RequestMyReplyQueue", Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>(), Arg.Any<AccessMode>()).Returns(replyQueue);
 
             using (var messageBroker = CreateMessageBroker())
             {
@@ -411,7 +411,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             replyQueue.Receive(Arg.Any<int>(), _cancellationToken).Returns(transactionalMessage);
             replyQueue.ReceiveAsync(Arg.Any<int>(), _cancellationToken).Returns(Task.FromResult(transactionalMessage));
 
-            _queueFactory.CreateLocale(Arg.Is<string>(n => n.Contains(".Reply.")), Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>()).Returns(replyQueue);
+            _queueFactory.CreateLocale(Arg.Is<string>(n => n.Contains(".Reply.")), Arg.Any<bool>(), Arg.Any<LocaleQueueMode>(), Arg.Any<bool>(), Arg.Any<AccessMode>()).Returns(replyQueue);
 
             return replyQueue;
         }

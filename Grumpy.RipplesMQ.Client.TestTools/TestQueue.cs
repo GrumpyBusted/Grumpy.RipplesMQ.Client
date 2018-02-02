@@ -41,21 +41,13 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
         public string Name { get; }
 
-        public int Count => 0;
+        public int Count() => 0;
 
         public void Connect()
         {
         }
 
-        public void Connect(QueueMode mode)
-        {
-        }
-
         public void Reconnect()
-        {
-        }
-
-        public void Reconnect(QueueMode mode)
         {
         }
 

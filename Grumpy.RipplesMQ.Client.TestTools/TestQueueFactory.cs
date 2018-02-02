@@ -19,7 +19,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         }
 
         /// <inheritdoc />
-        public ILocaleQueue CreateLocale(string name, bool privateQueue, LocaleQueueMode localeQueueMode, bool transactional)
+        public ILocaleQueue CreateLocale(string name, bool privateQueue, LocaleQueueMode localeQueueMode, bool transactional, AccessMode accessMode)
         {
             if (!_queues.Any(q => q.Name.Contains(name) || name.Contains(q.Name)))
                 _queues.Add(new TestQueue(name, _testMessageBroker));
@@ -28,7 +28,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         }
 
         /// <inheritdoc />
-        public IRemoteQueue CreateRemote(string serverName, string name, bool privateQueue, RemoteQueueMode remoteQueueMode, bool transactional)
+        public IRemoteQueue CreateRemote(string serverName, string name, bool privateQueue, RemoteQueueMode remoteQueueMode, bool transactional, AccessMode accessMode)
         {
             return null;
         }
