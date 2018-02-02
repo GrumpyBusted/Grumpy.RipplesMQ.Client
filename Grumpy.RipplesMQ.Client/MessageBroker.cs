@@ -36,7 +36,7 @@ namespace Grumpy.RipplesMQ.Client
             _queueFactory = queueFactory;
             _processInformation = processInformation;
             _queueNameUtility = queueNameUtility;
-            _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true, AccessMode.Receive);
+            _messageBrokerQueue = _queueFactory.CreateLocale(MessageBrokerConfig.LocaleQueueName, true, LocaleQueueMode.Durable, true, AccessMode.Send);
         }
 
         /// <inheritdoc />
