@@ -31,6 +31,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
         public bool Transactional => true;
 
+        public AccessMode AccessMode => AccessMode.SendAndReceive;
 
         public bool Private { get; }
 
