@@ -47,7 +47,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         {
         }
 
-        public void Connect(AccessMode mode)
+        public void Connect(QueueMode mode)
         {
         }
 
@@ -55,7 +55,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         {
         }
 
-        public void Reconnect(AccessMode mode)
+        public void Reconnect(QueueMode mode)
         {
         }
 
