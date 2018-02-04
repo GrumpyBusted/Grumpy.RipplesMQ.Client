@@ -8,7 +8,7 @@ namespace Grumpy.RipplesMQ.Client
     /// <inheritdoc />
     public class QueueNameUtility : IQueueNameUtility
     {
-        private const int MaxQueueLength = 124;
+        private const int MaxQueueLength = 99;
         private readonly string _serviceName;
 
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Grumpy.RipplesMQ.Client
         /// <inheritdoc />
         public string ReplyQueue<T>(string id = "")
         {
-            return Build(typeof(T).Name + ".Reply" + (id.NullOrEmpty() ? "" : $".{id}"));
+            return Build("Reply." + typeof(T).Name + (id.NullOrEmpty() ? "" : $".{id}"));
         }
 
         /// <inheritdoc />
@@ -50,7 +50,7 @@ namespace Grumpy.RipplesMQ.Client
             if (!durable)
             {
                 var uniqueKey = UniqueKeyUtility.Generate();
-                name = name.Left(123 - uniqueKey.Length) + "." + uniqueKey;
+                name = name.Left(MaxQueueLength - uniqueKey.Length - 1) + "." + uniqueKey;
             }
 
             return name;

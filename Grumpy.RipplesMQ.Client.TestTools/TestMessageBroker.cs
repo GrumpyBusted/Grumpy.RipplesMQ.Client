@@ -178,7 +178,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         /// <inheritdoc />
         public MessageBusServiceRegisterReplyMessage RegisterMessageBusService(CancellationToken cancellationToken)
         {
-            MockMessage($".{typeof(MessageBusServiceRegisterMessage).Name}.Reply.", new MessageBusServiceRegisterReplyMessage());
+            MockMessage($".Reply.{typeof(MessageBusServiceRegisterMessage).Name}.", new MessageBusServiceRegisterReplyMessage());
 
             return _messageBroker.RegisterMessageBusService(cancellationToken);
         }
@@ -193,7 +193,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             _subscriberQueues[queueName] = MockQueue(queueName);
             
-            MockMessage($".{typeof(SubscribeHandlerRegisterMessage).Name}.Reply.", new SubscribeHandlerRegisterReplyMessage());
+            MockMessage($".Reply.{typeof(SubscribeHandlerRegisterMessage).Name}.", new SubscribeHandlerRegisterReplyMessage());
 
             return _messageBroker.RegisterSubscribeHandler(name, topic, durable, queueName, cancellationToken);
         }
@@ -203,7 +203,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         {
             _requestQueues[name] = MockQueue(queueName);
 
-            MockMessage($".{typeof(RequestHandlerRegisterMessage).Name}.Reply.", new RequestHandlerRegisterReplyMessage());
+            MockMessage($".Reply.{typeof(RequestHandlerRegisterMessage).Name}.", new RequestHandlerRegisterReplyMessage());
 
             return _messageBroker.RegisterRequestHandler(name, queueName, cancellationToken);
         }
@@ -218,7 +218,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         public PublishReplyMessage SendPublishMessage<T>(string topic, T message, bool persistent, CancellationToken cancellationToken)
         {
             if (persistent)
-                MockMessage($".{typeof(PublishMessage).Name}.Reply.", new PublishReplyMessage());
+                MockMessage($".Reply.{typeof(PublishMessage).Name}.", new PublishReplyMessage());
 
             Publish(new PublishSubscribeConfig { Persistent = persistent, Topic = topic }, message);
 

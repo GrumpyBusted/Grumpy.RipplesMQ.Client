@@ -18,7 +18,7 @@ namespace Grumpy.RipplesMQ.Client.IntegrationTests
             var processInformation = new ProcessInformation();
             var queueNameUtility = new QueueNameUtility(messageBusConfig.ServiceName);
 
-            new MessageQueueManager().Delete(MessageBrokerConfig.LocaleQueueName, true);
+            new MessageQueueManager(Substitute.For<ILogger>()).Delete(MessageBrokerConfig.LocaleQueueName, true);
 
             Assert.Throws<MessageBrokerException>(() => new MessageBroker(Substitute.For<ILogger>(), messageBusConfig, queueFactory, processInformation, queueNameUtility));
         }
