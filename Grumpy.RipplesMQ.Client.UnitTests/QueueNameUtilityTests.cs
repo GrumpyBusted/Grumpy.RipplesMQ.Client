@@ -30,9 +30,9 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         [Fact]
         public void LongDurableQueueShouldReplaceServiceName()
         {
-            var name = _cut.Build("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789", true);
+            var name = _cut.Build("12345678901234567890123456789012345678901234567890123456789012345678901234567890", true);
 
-            name.Should().Be("RipplesMQ.12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+            name.Should().Be("RipplesMQ.12345678901234567890123456789012345678901234567890123456789012345678901234567890");
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             var name = _cut.Build("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
 
-            name.Length.Should().Be(99);
+            name.Length.Should().Be(90);
         }
     }
 }

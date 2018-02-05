@@ -8,7 +8,7 @@ namespace Grumpy.RipplesMQ.Client
     /// <inheritdoc />
     public class QueueNameUtility : IQueueNameUtility
     {
-        private const int MaxQueueLength = 99;
+        private const int MaxQueueLength = 90;
         private readonly string _serviceName;
 
         /// <inheritdoc />

@@ -66,7 +66,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
             var messageBusConfig = new MessageBusConfig
             {
-                ServiceName = "Grumpy.RipplesMQ.TestTools"
+                ServiceName = "TestRipplesMQ"
             };
 
             _queueFactory = new TestQueueFactory(this);
