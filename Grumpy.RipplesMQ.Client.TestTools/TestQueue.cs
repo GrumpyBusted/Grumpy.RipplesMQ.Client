@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Grumpy.Json;
 using Grumpy.MessageQueue.Enum;
 using Grumpy.MessageQueue.Interfaces;
 using Grumpy.MessageQueue.Msmq;
@@ -38,6 +39,11 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         public T Receive<T>(int millisecondsTimeout, CancellationToken cancellationToken)
         {
             return (T)Receive(millisecondsTimeout, cancellationToken).Message;
+        }
+
+        public string ToJson()
+        {
+            return this.SerializeToJson();
         }
 
         public string Name { get; }
