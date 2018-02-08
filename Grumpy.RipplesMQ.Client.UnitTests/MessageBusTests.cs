@@ -275,6 +275,38 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
+        public void AddRequestHandlerWithFluentSyntaxShouldWork()
+        {
+            using (var messageBus = CreateMessageBus())
+            {
+                messageBus
+                    .AddRequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequesterA", MillisecondsTimeout = 100 }, (s, c) => s)
+                    .AddRequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequesterB", MillisecondsTimeout = 100 }, (s, c) => s, false)
+                    .AddRequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequesterC", MillisecondsTimeout = 100 }, s => s)
+                    .AddRequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequesterD", MillisecondsTimeout = 100 }, s => s, false)
+                    .Start(new CancellationToken());
+            }
+        }
+
+        [Fact]
+        public void AddSubscriberHandlerWithFluentSyntaxShouldWork()
+        {
+            using (var messageBus = CreateMessageBus())
+            {
+                messageBus
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicA", Persistent = false }, (s, c) => { })
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicB", Persistent = false }, (s, c) => { }, "MySubscriber")
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicC", Persistent = false }, (s, c) => { }, "MySubscriber", true)
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicD", Persistent = false }, (s, c) => { }, "MySubscriber", true, true)
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicE", Persistent = false }, s => { })
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicF", Persistent = false }, s => { }, "MySubscriber")
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicG", Persistent = false }, s => { }, "MySubscriber", true)
+                    .AddSubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopicH", Persistent = false }, s => { }, "MySubscriber", true, true)
+                    .Start(new CancellationToken());
+            }
+        }
+
+        [Fact]
         public void DoubleRequestHandlerNotAllowed()
         {
             using (var messageBus = CreateMessageBus())
@@ -389,16 +421,15 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             }
         }
 
-        [Fact(Skip = "Is not starting the handshake task in debug mode")]
+        [Fact]
         public void MessageBusShouldSendHandshake()
         {
             using (var cut = CreateMessageBus())
             {
                 cut.Start(_cancellationToken);
-                Thread.Sleep(1000);
             }
 
-            _messageBroker.Received().SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
         }
 
         private IMessageBus CreateMessageBus()

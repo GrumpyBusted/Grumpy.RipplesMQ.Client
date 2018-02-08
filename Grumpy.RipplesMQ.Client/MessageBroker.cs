@@ -136,20 +136,35 @@ namespace Grumpy.RipplesMQ.Client
         }
 
         /// <inheritdoc />
-        public void SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers)
+        public MessageBusServiceHandshakeReplyMessage SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers, CancellationToken cancellationToken)
         {
             var messageBusServiceHandshakeMessage = new MessageBusServiceHandshakeMessage
             {
                 ServerName = _processInformation.MachineName,
                 ServiceName = _messageBusConfig.ServiceName,
-                HandshakeDateTime = DateTimeOffset.Now,
+                SendDateTime = DateTimeOffset.Now,
                 SubscribeHandlers = subscribeHandlers,
-                RequestHandlers = requestHandlers
+                RequestHandlers = requestHandlers,
+                ReplyQueue = _queueNameUtility.ReplyQueue<MessageBusServiceHandshakeMessage>()
             };
 
-            _logger.Debug("Message Broker Client sending Message Bus Handshake {@Message}", messageBusServiceHandshakeMessage);
+            using (var replyQueue = _queueFactory.CreateLocale(messageBusServiceHandshakeMessage.ReplyQueue, true, LocaleQueueMode.TemporaryMaster, false, AccessMode.Receive))
+            {
+                _logger.Debug("Message Broker Client sending Message Bus Handshake {@Message}", messageBusServiceHandshakeMessage);
 
-            SendToMessageBroker(messageBusServiceHandshakeMessage);
+                SendToMessageBroker(messageBusServiceHandshakeMessage);
+
+                var messageBusServiceHandshakeReplyMessage = replyQueue.Receive<MessageBusServiceHandshakeReplyMessage>(3000, cancellationToken);
+
+                if (messageBusServiceHandshakeReplyMessage == null)
+                    throw new MessageBusHandshakeTimeoutException(messageBusServiceHandshakeMessage);
+
+                messageBusServiceHandshakeReplyMessage.CompletedDateTime = DateTimeOffset.Now;
+
+                _logger.Debug("Message Broker Client has received reply for Message bus Handshake {@ReplyMessage}", messageBusServiceHandshakeReplyMessage);
+
+                return messageBusServiceHandshakeReplyMessage;
+            }
         }
 
         /// <inheritdoc />

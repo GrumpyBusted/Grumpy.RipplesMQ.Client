@@ -23,7 +23,6 @@ namespace Grumpy.RipplesMQ.Client
         private IQueueHandler _queueHandler;
         private Action<object> _handler;
         private Action<object, CancellationToken> _cancelableHandler;
-        private Type _messageType;
         private bool _multiThreaded;
         private bool _disposed;
         
@@ -36,6 +35,11 @@ namespace Grumpy.RipplesMQ.Client
         /// Topic to subscribe to
         /// </summary>
         public string Topic { get; }
+
+        /// <summary>
+        /// Message Type
+        /// </summary>
+        public Type MessageType { get; private set; }
 
         /// <summary>
         /// Queue Name
@@ -138,7 +142,7 @@ namespace Grumpy.RipplesMQ.Client
             if (_queueHandler != null)
                 throw new ArgumentException("Cannot Set Handler Twice");
 
-            _messageType = messageType;
+            MessageType = messageType;
             _multiThreaded = multiThreaded;
 
             _queueHandler = _queueHandlerFactory.Create();
@@ -155,13 +159,13 @@ namespace Grumpy.RipplesMQ.Client
 
             if (message is PublishMessage publishMessage)
             {
-                if (publishMessage.MessageType != _messageType.ToString())
-                    throw new InvalidMessageTypeException(publishMessage, _messageType, message.GetType());
+                if (publishMessage.MessageType != MessageType.ToString())
+                    throw new InvalidMessageTypeException(publishMessage, MessageType, message.GetType());
 
                 if (_handler != null)
-                    _handler(JsonConvert.DeserializeObject(publishMessage.MessageBody, _messageType));
+                    _handler(JsonConvert.DeserializeObject(publishMessage.MessageBody, MessageType));
                 else
-                    _cancelableHandler(JsonConvert.DeserializeObject(publishMessage.MessageBody, _messageType), cancellationToken);
+                    _cancelableHandler(JsonConvert.DeserializeObject(publishMessage.MessageBody, MessageType), cancellationToken);
 
                 _messageBroker.SendSubscribeHandlerCompletedMessage(Name, publishMessage);
             }

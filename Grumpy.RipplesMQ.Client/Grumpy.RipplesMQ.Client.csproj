@@ -36,6 +36,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\MessageBusHandshakeTimeoutException.cs" />
+    <Compile Include="MessageBusExtensions.cs" />
     <Compile Include="Exceptions\DoubleRequestHandlerException.cs" />
     <Compile Include="Exceptions\DoubleSubscribeHandlerException.cs" />
     <Compile Include="Exceptions\InvalidMessageTypeException.cs" />
@@ -66,13 +68,13 @@
       <Version>1.0.6</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.MessageQueue">
-      <Version>1.3.29</Version>
+      <Version>1.3.30</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Config">
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Shared">
-      <Version>1.2.8</Version>
+      <Version>1.2.9</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

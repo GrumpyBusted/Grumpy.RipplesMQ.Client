@@ -209,9 +209,11 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         }
 
         /// <inheritdoc />
-        public void SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers)
+        public MessageBusServiceHandshakeReplyMessage SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers, CancellationToken cancellationToken)
         {
-            _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers);
+            MockMessage($".Reply.{typeof(MessageBusServiceHandshakeMessage).Name}.", new MessageBusServiceHandshakeReplyMessage());
+
+            return _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, cancellationToken);
         }
 
         /// <inheritdoc />

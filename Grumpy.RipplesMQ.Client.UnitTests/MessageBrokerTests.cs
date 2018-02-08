@@ -189,12 +189,43 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         [Fact]
         public void SendHandshakeShouldSendMessage()
         {
-            using (var messageBroker = CreateMessageBroker())
-            {
-                messageBroker.SendMessageBusHandshake(Enumerable.Empty<Shared.Messages.SubscribeHandler>(), Enumerable.Empty<Shared.Messages.RequestHandler>());
-            }
+            ReplyQueue<MessageBusServiceHandshakeReplyMessage>();
+
+            SendHandshakeMessage();
 
             _messageBrokerQueue.Received(1).Send(Arg.Any<MessageBusServiceHandshakeMessage>());
+        }
+
+        [Fact]
+        public void SendHandshakeShouldReceiveReply()
+        {
+            var replyQueue = ReplyQueue<MessageBusServiceHandshakeReplyMessage>();
+
+            SendHandshakeMessage();
+
+            replyQueue.Received(1).Receive<MessageBusServiceHandshakeReplyMessage>(Arg.Any<int>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void SendHandshakeShouldThrowException()
+        {
+            Assert.Throws<MessageBusHandshakeTimeoutException>(() => SendHandshakeMessage());
+        }
+
+        private MessageBusServiceHandshakeReplyMessage SendHandshakeMessage()
+        {
+            using (var messageBroker = CreateMessageBroker())
+            {
+                return messageBroker.SendMessageBusHandshake(Enumerable.Empty<Shared.Messages.SubscribeHandler>(), Enumerable.Empty<Shared.Messages.RequestHandler>(), _cancellationToken);
+            }
+        }
+
+        [Fact]
+        public void SendHandshakeShouldReceiveCompletedTime()
+        {
+            ReplyQueue<MessageBusServiceHandshakeReplyMessage>();
+
+            SendHandshakeMessage().CompletedDateTime.Should().NotBeNull();
         }
 
         [Fact]
@@ -269,6 +300,27 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             ReplyQueue(CreateResponseMessage(1));
 
             Assert.Throws<AggregateException>(() => RequestResponse());
+        }
+
+        [Fact]
+        public void CheckServerWhenMessageBrokerQueueExistShouldCallExists()
+        {
+            using (var messageBroker = CreateMessageBroker())
+            {
+                messageBroker.CheckServer();
+                _messageBrokerQueue.Received(1).Exists();
+            }
+        }
+
+        [Fact]
+        public void CheckServerWhenMessageBrokerQueueNotExistShouldThrow()
+        {
+            _messageBrokerQueue.Exists().Returns(false);
+
+            using (var messageBroker = CreateMessageBroker())
+            {
+                Assert.Throws<MessageBrokerException>(() => messageBroker.CheckServer());
+            }
         }
 
         private static ResponseMessage CreateResponseMessage(object message)

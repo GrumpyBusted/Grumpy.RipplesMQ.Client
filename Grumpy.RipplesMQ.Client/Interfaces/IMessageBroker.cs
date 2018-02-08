@@ -16,6 +16,7 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         /// Register a Message bus Service in the Message Broker
         /// </summary>
         /// <param name="cancellationToken">Cancellation Token</param>
+        /// <returns>Reply Message</returns>
         MessageBusServiceRegisterReplyMessage RegisterMessageBusService(CancellationToken cancellationToken);
 
         /// <summary>
@@ -26,6 +27,7 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         /// <param name="name">Subscriber Name</param>
         /// <param name="durable">Is Subscriber Durable</param>
         /// <param name="cancellationToken">Cancellation Token</param>
+        /// <returns>Reply Message</returns>
         SubscribeHandlerRegisterReplyMessage RegisterSubscribeHandler(string name, string topic, bool durable, string queueName, CancellationToken cancellationToken);
 
         /// <summary>
@@ -34,6 +36,7 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         /// <param name="queueName">Queue name</param>
         /// <param name="name">Request Name</param>
         /// <param name="cancellationToken">Cancellation Token</param>
+        /// <returns>Reply Message</returns>
         RequestHandlerRegisterReplyMessage RegisterRequestHandler(string name, string queueName, CancellationToken cancellationToken);
 
         /// <summary>
@@ -41,7 +44,9 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         /// </summary>
         /// <param name="subscribeHandlers">Subscribe handlers</param>
         /// <param name="requestHandlers">Request handlers</param>
-        void SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers);
+        /// <param name="cancellationToken">Cancellation Token</param>
+        /// <returns>Reply Message</returns>
+        MessageBusServiceHandshakeReplyMessage SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers, CancellationToken cancellationToken);
 
         /// <summary>
         /// Send a Publish Message to the Message Broker

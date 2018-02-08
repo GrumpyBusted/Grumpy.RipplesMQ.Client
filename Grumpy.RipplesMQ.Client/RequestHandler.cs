@@ -23,8 +23,6 @@ namespace Grumpy.RipplesMQ.Client
         private IQueueHandler _queueHandler;
         private Func<object, object> _handler;
         private Func<object, CancellationToken, object> _cancelableHandler;
-        private Type _requestType;
-        private Type _responseType;
         private bool _multiThreaded;
         private bool _disposed;
 
@@ -33,6 +31,16 @@ namespace Grumpy.RipplesMQ.Client
         /// </summary>
         public string Name { get; }
         
+        /// <summary>
+        /// Request Message Type
+        /// </summary>
+        public Type RequestType { get; private set; }
+
+        /// <summary>
+        /// response Message Type
+        /// </summary>
+        public Type ResponseType { get; private set; }
+
         /// <summary>
         /// Queue Name
         /// </summary>
@@ -127,8 +135,8 @@ namespace Grumpy.RipplesMQ.Client
             if (_queueHandler != null)
                 throw new ArgumentException("Cannot Set Handler Twice");
 
-            _requestType = requestType;
-            _responseType = responseType;
+            RequestType = requestType;
+            ResponseType = responseType;
             _multiThreaded = multiThreaded;
 
             _queueHandler = _queueHandlerFactory.Create();
@@ -145,14 +153,14 @@ namespace Grumpy.RipplesMQ.Client
 
             if (message is RequestMessage requestMessage)
             {
-                if (requestMessage.MessageType != _requestType.ToString())
-                    throw new InvalidMessageTypeException(message, _requestType, requestMessage.MessageType);
+                if (requestMessage.MessageType != RequestType.ToString())
+                    throw new InvalidMessageTypeException(message, RequestType, requestMessage.MessageType);
 
-                var request = JsonConvert.DeserializeObject(requestMessage.MessageBody, _requestType);
+                var request = JsonConvert.DeserializeObject(requestMessage.MessageBody, RequestType);
                 var response = _handler != null ? _handler(request) : _cancelableHandler(request, cancellationToken);
 
-                if (response != null && response.GetType() != _responseType)
-                    throw new InvalidMessageTypeException(message, response, _responseType, message.GetType());
+                if (response != null && response.GetType() != ResponseType)
+                    throw new InvalidMessageTypeException(message, response, ResponseType, message.GetType());
 
                 _messageBroker.SendResponseMessage(requestMessage.ReplyQueue, requestMessage, response);
             }
