@@ -99,8 +99,6 @@ namespace Grumpy.RipplesMQ.Client
             if (_queueHandler == null)
                 throw new ArgumentException("Cannot Start before Set");
 
-            _messageBroker.RegisterSubscribeHandler(Name, Topic, Durable, QueueName, cancellationToken);
-
             _queueHandler.Start(QueueName, true, Durable ? LocaleQueueMode.DurableCreate : LocaleQueueMode.TemporaryMaster, true, MessageHandler, (o, exception) => ErrorHandler(o, exception), null, 1000, _multiThreaded, syncMode, cancellationToken);
 
             _logger.Information("Subscribe Handler started {@SubscribeHandler}", this);

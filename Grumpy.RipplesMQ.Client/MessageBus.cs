@@ -54,8 +54,6 @@ namespace Grumpy.RipplesMQ.Client
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationTokenRegistration = cancellationToken.Register(Stop);
 
-            _messageBroker.CheckServer();
-            _messageBroker.RegisterMessageBusService(_cancellationTokenSource.Token);
             SendHandshake();
 
             // ReSharper disable once InconsistentlySynchronizedField
@@ -97,7 +95,7 @@ namespace Grumpy.RipplesMQ.Client
         {
             _messageBroker.CheckServer();
 
-            var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, Type = s.MessageType.FullName });
+            var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, MessageType = s.MessageType.FullName });
             var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler { Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName });
 
             _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, _cancellationTokenSource.Token);

@@ -42,12 +42,9 @@
     <Compile Include="Exceptions\DoubleSubscribeHandlerException.cs" />
     <Compile Include="Exceptions\InvalidMessageTypeException.cs" />
     <Compile Include="Exceptions\MessageBrokerException.cs" />
-    <Compile Include="Exceptions\MessageBusServiceRegisterTimeoutException.cs" />
     <Compile Include="Exceptions\PublishReplyTimeoutException.cs" />
     <Compile Include="Exceptions\RequestHandlerException.cs" />
-    <Compile Include="Exceptions\RequestHandlerRegisterTimeoutException.cs" />
     <Compile Include="Exceptions\RequestResponseTimeoutException.cs" />
-    <Compile Include="Exceptions\SubscribeHandlerRegisterTimeoutException.cs" />
     <Compile Include="Interfaces\IMessageBroker.cs" />
     <Compile Include="Interfaces\IMessageBus.cs" />
     <Compile Include="Interfaces\IQueueNameUtility.cs" />
@@ -74,7 +71,7 @@
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Grumpy.RipplesMQ.Shared">
-      <Version>1.2.9</Version>
+      <Version>1.2.10</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

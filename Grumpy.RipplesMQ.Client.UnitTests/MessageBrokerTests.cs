@@ -47,48 +47,6 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
-        public void RegisterMessageBusServiceShouldSendMessage()
-        {
-            ReplyQueue<MessageBusServiceRegisterReplyMessage>();
-
-            RegisterMessageBusService();
-
-            _messageBrokerQueue.Received(1).Send(Arg.Any<MessageBusServiceRegisterMessage>());
-        }
-
-        [Fact]
-        public void RegisterMessageBusServiceWithoutReplyShouldThrowException()
-        {
-            Assert.Throws<MessageBusServiceRegisterTimeoutException>(() => RegisterMessageBusService());
-        }
-
-        [Fact]
-        public void RegisterMessageBusServiceShouldReceiveCompletedTime()
-        {
-            ReplyQueue<MessageBusServiceRegisterReplyMessage>();
-
-            RegisterMessageBusService().CompletedDateTime.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void RegisterMessageBusServiceShouldExpectReply()
-        {
-            var replyQueue = ReplyQueue<MessageBusServiceRegisterReplyMessage>();
-
-            RegisterMessageBusService();
-
-            replyQueue.Received(1).Receive<MessageBusServiceRegisterReplyMessage>(Arg.Any<int>(), Arg.Any<CancellationToken>());
-        }
-
-        private MessageBusServiceRegisterReplyMessage RegisterMessageBusService()
-        {
-            using (var messageBroker = CreateMessageBroker())
-            {
-                return messageBroker.RegisterMessageBusService(_cancellationToken);
-            }
-        }
-
-        [Fact]
         public void SendPublishMessageShouldSendToMessageBroker()
         {
             SendPublishMessage(false);
@@ -142,48 +100,6 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             SendPublishMessage(false);
 
             replyQueue.Received(0).Receive<PublishReplyMessage>(Arg.Any<int>(), Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public void RegisterSubscriberShouldSendRegistration()
-        {
-            ReplyQueue<SubscribeHandlerRegisterReplyMessage>();
-
-            RegisterSubscribeHandler();
-
-            _messageBrokerQueue.Received(1).Send(Arg.Any<SubscribeHandlerRegisterMessage>());
-        }
-
-        [Fact]
-        public void RegisterSubscriberWithoutReplyShouldThrowException()
-        {
-            Assert.Throws<SubscribeHandlerRegisterTimeoutException>(() => RegisterSubscribeHandler());
-        }
-
-        [Fact]
-        public void RegisterSubscriberShouldReceiveCompleteTime()
-        {
-            ReplyQueue<SubscribeHandlerRegisterReplyMessage>();
-
-            RegisterSubscribeHandler().CompletedDateTime.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void RegisterSubscriberShouldSendReceiveReply()
-        {
-            var replyQueue = ReplyQueue<SubscribeHandlerRegisterReplyMessage>();
-
-            RegisterSubscribeHandler();
-
-            replyQueue.Received(1).Receive<SubscribeHandlerRegisterReplyMessage>(Arg.Any<int>(), Arg.Any<CancellationToken>());
-        }
-
-        private SubscribeHandlerRegisterReplyMessage RegisterSubscribeHandler()
-        {
-            using (var messageBroker = CreateMessageBroker())
-            {
-                return messageBroker.RegisterSubscribeHandler("MyTopic", "MySubscriber", false, "MyQueue", _cancellationToken);
-            }
         }
 
         [Fact]
@@ -358,48 +274,6 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             using (var messageBroker = CreateMessageBroker())
             {
                 return messageBroker.RequestResponseAsync<string, string>("MyRequester", "MyRequest", 1000, _cancellationToken)?.Result;
-            }
-        }
-
-        [Fact]
-        public void RegisterRequestHandlerShouldSendRegistration()
-        {
-            ReplyQueue<RequestHandlerRegisterReplyMessage>();
-
-            RegisterRequestHandler();
-
-            _messageBrokerQueue.Received(1).Send(Arg.Any<RequestHandlerRegisterMessage>());
-        }
-
-        [Fact]
-        public void RegisterRequestHandlerWithoutReplyShouldThrowException()
-        {
-            Assert.Throws<RequestHandlerRegisterTimeoutException>(() => RegisterRequestHandler());
-        }
-
-        [Fact]
-        public void RegisterRequestHandlerShouldReceiveCompleteTime()
-        {
-            ReplyQueue<RequestHandlerRegisterReplyMessage>();
-
-            RegisterRequestHandler().CompletedDateTime.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void RegisterRequestHandlerShouldReceiveReply()
-        {
-            var replyQueue = ReplyQueue<RequestHandlerRegisterReplyMessage>();
-
-            RegisterRequestHandler();
-
-            replyQueue.Received(1).Receive<RequestHandlerRegisterReplyMessage>(Arg.Any<int>(), Arg.Any<CancellationToken>());
-        }
-
-        private RequestHandlerRegisterReplyMessage RegisterRequestHandler()
-        {
-            using (var messageBroker = CreateMessageBroker())
-            {
-                return messageBroker.RegisterRequestHandler("MyQueue", "MyRequest", _cancellationToken);
             }
         }
 

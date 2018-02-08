@@ -13,33 +13,6 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
     public interface IMessageBroker : IDisposable
     {
         /// <summary>
-        /// Register a Message bus Service in the Message Broker
-        /// </summary>
-        /// <param name="cancellationToken">Cancellation Token</param>
-        /// <returns>Reply Message</returns>
-        MessageBusServiceRegisterReplyMessage RegisterMessageBusService(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Register Subscribe Handler with the Message Broker
-        /// </summary>
-        /// <param name="queueName">Queue Name</param>
-        /// <param name="topic">Topic/Subject</param>
-        /// <param name="name">Subscriber Name</param>
-        /// <param name="durable">Is Subscriber Durable</param>
-        /// <param name="cancellationToken">Cancellation Token</param>
-        /// <returns>Reply Message</returns>
-        SubscribeHandlerRegisterReplyMessage RegisterSubscribeHandler(string name, string topic, bool durable, string queueName, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Register Request Handler with the Message Broker
-        /// </summary>
-        /// <param name="queueName">Queue name</param>
-        /// <param name="name">Request Name</param>
-        /// <param name="cancellationToken">Cancellation Token</param>
-        /// <returns>Reply Message</returns>
-        RequestHandlerRegisterReplyMessage RegisterRequestHandler(string name, string queueName, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Send Message Bus Handshake
         /// </summary>
         /// <param name="subscribeHandlers">Subscribe handlers</param>

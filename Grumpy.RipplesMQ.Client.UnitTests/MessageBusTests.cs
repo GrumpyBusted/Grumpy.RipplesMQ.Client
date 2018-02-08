@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -33,14 +34,14 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
-        public void StartMessageBusShouldRegisterMessageBusService()
+        public void StartMessageBusShouldSendHandshake()
         {
             using (var cut = CreateMessageBus())
             {
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).RegisterMessageBusService(Arg.Any<CancellationToken>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -122,7 +123,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).RegisterSubscribeHandler(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(l => l.Count(s => s.Name == "MySubscriber") == 1), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -134,7 +135,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).RegisterSubscribeHandler(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(l => l.Count(s => s.Name == "MySubscriber") == 1), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -229,7 +230,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).RegisterRequestHandler(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(l => l.Count(s => s.Name == "MyRequester") == 1), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -241,7 +242,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).RegisterRequestHandler(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(l => l.Count(s => s.Name == "MyRequester") == 1), Arg.Any<CancellationToken>());
         }
 
         [Fact]

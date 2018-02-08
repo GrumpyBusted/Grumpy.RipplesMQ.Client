@@ -38,6 +38,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         private readonly Dictionary<string, ILocaleQueue> _requestQueues = new Dictionary<string, ILocaleQueue>();
         private readonly object _lock = new object();
         private int _pendingMessages;
+        private bool _first = true;
 
         /// <summary>
         /// Collection of Messages published to the Test Message Bus, Use the for asserting that the messages was published as expected in the Service.
@@ -160,7 +161,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
                 {
                     MessageBody = SerializeToJson(request),
                     MessageType = typeof(TRequest).FullName,
-                    Name = config.Name, 
+                    Name = config.Name,
                     ReplyQueue = replyQueue
                 }, true);
 
@@ -176,44 +177,34 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         }
 
         /// <inheritdoc />
-        public MessageBusServiceRegisterReplyMessage RegisterMessageBusService(CancellationToken cancellationToken)
-        {
-            MockMessage($".Reply.{typeof(MessageBusServiceRegisterMessage).Name}.", new MessageBusServiceRegisterReplyMessage());
-
-            return _messageBroker.RegisterMessageBusService(cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public SubscribeHandlerRegisterReplyMessage RegisterSubscribeHandler(string name, string topic, bool durable, string queueName, CancellationToken cancellationToken)
-        {
-            if (!_topicSubscribers.ContainsKey(topic))
-                _topicSubscribers.Add(topic, new List<string>());
-
-            _topicSubscribers[topic].Add(queueName);
-
-            _subscriberQueues[queueName] = MockQueue(queueName);
-            
-            MockMessage($".Reply.{typeof(SubscribeHandlerRegisterMessage).Name}.", new SubscribeHandlerRegisterReplyMessage());
-
-            return _messageBroker.RegisterSubscribeHandler(name, topic, durable, queueName, cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public RequestHandlerRegisterReplyMessage RegisterRequestHandler(string name, string queueName, CancellationToken cancellationToken)
-        {
-            _requestQueues[name] = MockQueue(queueName);
-
-            MockMessage($".Reply.{typeof(RequestHandlerRegisterMessage).Name}.", new RequestHandlerRegisterReplyMessage());
-
-            return _messageBroker.RegisterRequestHandler(name, queueName, cancellationToken);
-        }
-
-        /// <inheritdoc />
         public MessageBusServiceHandshakeReplyMessage SendMessageBusHandshake(IEnumerable<Shared.Messages.SubscribeHandler> subscribeHandlers, IEnumerable<Shared.Messages.RequestHandler> requestHandlers, CancellationToken cancellationToken)
         {
+            var subscribeHandlerList = subscribeHandlers.ToList();
+            var requestHandlerList = requestHandlers.ToList();
+
+            if (_first)
+            {
+                _first = false;
+
+                foreach (var subscribeHandler in subscribeHandlerList)
+                {
+                    if (!_topicSubscribers.ContainsKey(subscribeHandler.Topic))
+                        _topicSubscribers.Add(subscribeHandler.Topic, new List<string>());
+
+                    _topicSubscribers[subscribeHandler.Topic].Add(subscribeHandler.QueueName);
+
+                    _subscriberQueues[subscribeHandler.QueueName] = MockQueue(subscribeHandler.QueueName);
+                }
+
+                foreach (var requestHandler in requestHandlerList)
+                {
+                    _requestQueues[requestHandler.Name] = MockQueue(requestHandler.QueueName);
+                }
+            }
+
             MockMessage($".Reply.{typeof(MessageBusServiceHandshakeMessage).Name}.", new MessageBusServiceHandshakeReplyMessage());
 
-            return _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, cancellationToken);
+            return _messageBroker.SendMessageBusHandshake(subscribeHandlerList, requestHandlerList, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -327,9 +318,10 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             {
                 MessageBody = SerializeToJson(message),
                 MessageType = typeof(T).FullName,
-                MessageId = UniqueKeyUtility.Generate(), 
-                Persistent = publishSubscribeConfig.Persistent, 
-                ReplyQueue = null, Topic = publishSubscribeConfig.Topic
+                MessageId = UniqueKeyUtility.Generate(),
+                Persistent = publishSubscribeConfig.Persistent,
+                ReplyQueue = null,
+                Topic = publishSubscribeConfig.Topic
             };
         }
 
@@ -356,7 +348,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
 
         private static string SerializeToJson(object response)
         {
-            var jsonSerializerSettings = new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All};
+            var jsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
 
             return response.SerializeToJson(jsonSerializerSettings);
         }
