@@ -160,7 +160,8 @@ namespace Grumpy.RipplesMQ.Client.TestTools
                 MockMessage(queue.Value, new RequestMessage
                 {
                     MessageBody = SerializeToJson(request),
-                    MessageType = typeof(TRequest).FullName,
+                    RequestType = typeof(TRequest).FullName,
+                    ResponseType = typeof(TResponse).FullName,
                     Name = config.Name,
                     ReplyQueue = replyQueue
                 }, true);
@@ -253,7 +254,8 @@ namespace Grumpy.RipplesMQ.Client.TestTools
             throw new RequestResponseTimeoutException(new RequestMessage
             {
                 MessageBody = SerializeToJson(request),
-                MessageType = typeof(TRequest).FullName,
+                RequestType = typeof(TRequest).FullName,
+                ResponseType = typeof(TResponse).FullName,
                 Name = name
             }, millisecondsTimeout);
         }

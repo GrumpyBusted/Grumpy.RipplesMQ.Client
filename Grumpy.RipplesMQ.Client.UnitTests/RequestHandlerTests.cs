@@ -134,7 +134,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             return new RequestMessage
             {
                 MessageBody = message.SerializeToJson(),
-                MessageType = message.GetType().FullName
+                RequestType = message.GetType().FullName
             };
         }
 

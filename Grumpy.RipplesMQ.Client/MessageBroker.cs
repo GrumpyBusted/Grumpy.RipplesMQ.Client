@@ -177,7 +177,8 @@ namespace Grumpy.RipplesMQ.Client
                 RequestId = UniqueKeyUtility.Generate(),
                 Name = name,
                 MessageBody = SerializeToJson(request),
-                MessageType = typeof(TRequest).FullName,
+                RequestType = typeof(TRequest).FullName,
+                ResponseType = typeof(TResponse).FullName,
                 ReplyQueue = _queueNameUtility.ReplyQueue<RequestMessage>(name),
                 RequestDateTime = DateTimeOffset.Now
             };

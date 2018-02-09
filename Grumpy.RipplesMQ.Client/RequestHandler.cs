@@ -152,8 +152,8 @@ namespace Grumpy.RipplesMQ.Client
 
             if (message is RequestMessage requestMessage)
             {
-                if (requestMessage.MessageType != RequestType.ToString())
-                    throw new InvalidMessageTypeException(message, RequestType, requestMessage.MessageType);
+                if (requestMessage.RequestType != RequestType.ToString())
+                    throw new InvalidMessageTypeException(message, RequestType, requestMessage.RequestType);
 
                 var request = JsonConvert.DeserializeObject(requestMessage.MessageBody, RequestType);
                 var response = _handler != null ? _handler(request) : _cancelableHandler(request, cancellationToken);
