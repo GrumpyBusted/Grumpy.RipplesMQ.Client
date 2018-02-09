@@ -72,6 +72,8 @@ namespace Grumpy.RipplesMQ.Client
 
             if (!SyncMode)
                 _handshakeTask.Start(SendHandshake, 30000, _cancellationTokenSource.Token);
+
+            _logger.Information("Message Bus started");
         }
 
         /// <inheritdoc />
@@ -89,6 +91,8 @@ namespace Grumpy.RipplesMQ.Client
             Parallel.ForEach(_requestHandlers, requestHandler => requestHandler.Stop());
 
             _cancellationTokenRegistration.Dispose();
+
+            _logger.Information("Message Bus stopped");
         }
 
         private void SendHandshake()

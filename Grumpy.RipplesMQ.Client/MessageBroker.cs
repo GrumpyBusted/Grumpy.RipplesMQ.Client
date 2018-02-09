@@ -58,7 +58,7 @@ namespace Grumpy.RipplesMQ.Client
 
                 SendToMessageBroker(messageBusServiceHandshakeMessage);
 
-                var messageBusServiceHandshakeReplyMessage = replyQueue.Receive<MessageBusServiceHandshakeReplyMessage>(3000, cancellationToken);
+                var messageBusServiceHandshakeReplyMessage = replyQueue.Receive<MessageBusServiceHandshakeReplyMessage>(30000, cancellationToken);
 
                 if (messageBusServiceHandshakeReplyMessage == null)
                     throw new MessageBusHandshakeTimeoutException(messageBusServiceHandshakeMessage);
