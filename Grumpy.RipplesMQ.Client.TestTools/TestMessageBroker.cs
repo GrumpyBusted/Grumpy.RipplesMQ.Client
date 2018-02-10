@@ -283,7 +283,7 @@ namespace Grumpy.RipplesMQ.Client.TestTools
         }
 
         /// <inheritdoc />
-        public void CheckServer()
+        public void CheckMessageBrokerQueue()
         {
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Grumpy.Common;
@@ -281,10 +282,18 @@ namespace Grumpy.RipplesMQ.Client
         }
 
         /// <inheritdoc />
-        public void CheckServer()
+        public void CheckMessageBrokerQueue()
         {
-            if (!_messageBrokerQueue.Exists())
-                throw new MessageBrokerException(_messageBrokerQueue.Name);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (!_messageBrokerQueue.Exists())
+            {
+                if (stopwatch.ElapsedMilliseconds > 10000)
+                    throw new MessageBrokerException(_messageBrokerQueue.Name);
+
+                Thread.Sleep(100);
+            }
         }
 
         /// <inheritdoc />

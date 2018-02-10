@@ -97,12 +97,23 @@ namespace Grumpy.RipplesMQ.Client
 
         private void SendHandshake()
         {
-            _messageBroker.CheckServer();
+            try
+            {
+                _messageBroker.CheckMessageBrokerQueue();
 
-            var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, MessageType = s.MessageType.FullName });
-            var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler { Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName });
+                var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler {Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, MessageType = s.MessageType.FullName});
+                var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler {Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName});
 
-            _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, _cancellationTokenSource.Token);
+                _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, _cancellationTokenSource.Token);
+            }
+            catch (Exception exception)
+            {
+                _logger.Critical(exception, "Failed to give handshake to Message Broker, stopping Message Bus");
+
+                Stop();
+
+                throw;
+            }
         }
 
         /// <inheritdoc />

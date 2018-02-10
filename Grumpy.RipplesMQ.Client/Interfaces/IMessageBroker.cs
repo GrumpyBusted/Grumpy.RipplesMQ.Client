@@ -77,8 +77,8 @@ namespace Grumpy.RipplesMQ.Client.Interfaces
         void SendResponseErrorMessage(string replyQueue, RequestMessage requestMessage, Exception exception);
 
         /// <summary>
-        /// Check If SMessage Broker Server is Running
+        /// Check If the Message Broker Server Queue exists
         /// </summary>
-        void CheckServer();
+        void CheckMessageBrokerQueue();
     }
 }

@@ -223,7 +223,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         {
             using (var messageBroker = CreateMessageBroker())
             {
-                messageBroker.CheckServer();
+                messageBroker.CheckMessageBrokerQueue();
                 _messageBrokerQueue.Received(1).Exists();
             }
         }
@@ -235,7 +235,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
 
             using (var messageBroker = CreateMessageBroker())
             {
-                Assert.Throws<MessageBrokerException>(() => messageBroker.CheckServer());
+                Assert.Throws<MessageBrokerException>(() => messageBroker.CheckMessageBrokerQueue());
             }
         }
 
