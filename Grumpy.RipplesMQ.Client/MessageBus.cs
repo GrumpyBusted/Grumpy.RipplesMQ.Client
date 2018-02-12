@@ -30,6 +30,7 @@ namespace Grumpy.RipplesMQ.Client
         private TimerTask _handshakeTask;
         internal bool SyncMode = false;
         private readonly IQueueNameUtility _queueNameUtility;
+        private int _reconnectCount = 0;
 
         /// <inheritdoc />
         public MessageBus(ILogger logger, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, IQueueNameUtility queueNameUtility)
@@ -81,6 +82,15 @@ namespace Grumpy.RipplesMQ.Client
         {
             _logger.Information("Message Bus stopping");
 
+            try
+            {
+                _messageBroker.SendMessageBusHandshake(Enumerable.Empty<Shared.Messages.SubscribeHandler>(), Enumerable.Empty<Shared.Messages.RequestHandler>(), _cancellationTokenSource.Token);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, "Unable to send empty handshake to broker");
+            }
+
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
@@ -105,14 +115,21 @@ namespace Grumpy.RipplesMQ.Client
                 var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler {Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName});
 
                 _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, _cancellationTokenSource.Token);
+
+                _reconnectCount = 0;
             }
             catch (Exception exception)
             {
-                _logger.Critical(exception, "Failed to give handshake to Message Broker, stopping Message Bus");
+                if (++_reconnectCount > 20)
+                {
+                    _logger.Critical(exception, "Failed to give handshake to Message Broker, stopping Message Bus");
 
-                Stop();
+                    Stop();
 
-                throw;
+                    throw;
+                }
+
+                _logger.Error(exception, "Failed to give handshake to Message Broker, reconnecting in a bit {ReconnectCount}", _reconnectCount);
             }
         }
 

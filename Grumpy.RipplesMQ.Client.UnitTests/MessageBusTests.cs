@@ -41,7 +41,7 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(2).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -423,19 +423,59 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
-        public void MessageBusShouldSendHandshake()
+        public void SendHandshakeShouldIncludeSubscribeHandlers()
         {
+            using (var cut = CreateMessageBus())
+            {
+                cut.SubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopic" }, s => { });
+                cut.Start(_cancellationToken);
+            }
+
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(s => s.Count(h => h.Topic == "MyTopic") == 1), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void SendHandshakeShouldIncludeRequestHandlers()
+        {
+            using (var cut = CreateMessageBus())
+            {
+                cut.RequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequestHandler", MillisecondsTimeout = 100 }, s => s);
+                cut.Start(_cancellationToken);
+            }
+
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(r => r.Count(h => h.Name == "MyRequestHandler") == 1), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void SendHandshakeFailsShouldRetry()
+        {
+            _messageBroker.SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>()).Returns(e => throw new Exception());
+
             using (var cut = CreateMessageBus())
             {
                 cut.Start(_cancellationToken);
             }
 
-            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
+            _messageBroker.Received(2).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void StopShouldSendEmptyHandshake()
+        {
+            using (var cut = CreateMessageBus())
+            {
+                cut.SubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopic" }, s => { });
+                cut.RequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequestHandler", MillisecondsTimeout = 100 }, s => s);
+                cut.Start(_cancellationToken);
+                cut.Stop();
+            }
+
+            _messageBroker.Received(1).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(s => !s.Any()), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(r => !r.Any()), Arg.Any<CancellationToken>());
         }
 
         private IMessageBus CreateMessageBus()
         {
-            return new MessageBus(Substitute.For<ILogger>(), _messageBroker, _queueHandlerFactory, _queueNameUtility) {SyncMode = true};
+            return new MessageBus(Substitute.For<ILogger>(), _messageBroker, _queueHandlerFactory, _queueNameUtility) { SyncMode = true };
         }
     }
 }
