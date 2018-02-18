@@ -178,16 +178,6 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
-        public void RegisterSubscriberHandlerAfterStartShouldThrowException()
-        {
-            using (var cut = CreateMessageBus())
-            {
-                cut.Start(_cancellationToken);
-                Assert.Throws<ArgumentException>(() => cut.SubscribeHandler<string>(new PublishSubscribeConfig { Persistent = false, Topic = "MyTopic" }, (m, c) => { }, "MySubscriber"));
-            }
-        }
-
-        [Fact]
         public void RegisterNoneCancellableSubscriberWithNameShouldGetDurableQueue()
         {
             using (var cut = CreateMessageBus())
@@ -327,16 +317,6 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
         }
 
         [Fact]
-        public void RequestHandlerAfterStartShouldThrowException()
-        {
-            using (var messageBus = CreateMessageBus())
-            {
-                messageBus.Start(_cancellationToken);
-                Assert.Throws<ArgumentException>(() => messageBus.RequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequester", MillisecondsTimeout = 100 }, s => s));
-            }
-        }
-
-        [Fact]
         public void RequestHandlerWithNullConfigShouldThrowException()
         {
             using (var messageBus = CreateMessageBus())
@@ -471,6 +451,30 @@ namespace Grumpy.RipplesMQ.Client.UnitTests
             }
 
             _messageBroker.Received(1).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(s => !s.Any()), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(r => !r.Any()), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void AddingSubscribeHandlerAfterStartShouldSendHandshake()
+        {
+            using (var cut = CreateMessageBus())
+            {
+                cut.Start(_cancellationToken);
+                cut.SubscribeHandler<string>(new PublishSubscribeConfig { Topic = "MyTopic" }, s => { });
+            }
+
+            _messageBroker.Received(2).SendMessageBusHandshake(Arg.Is<IEnumerable<Shared.Messages.SubscribeHandler>>(e => e.Count(r => r.Topic == "MyTopic") == 1), Arg.Any<IEnumerable<Shared.Messages.RequestHandler>>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public void AddingRequestHandlerAfterStartShouldSendHandshake()
+        {
+            using (var cut = CreateMessageBus())
+            {
+                cut.Start(_cancellationToken);
+                cut.RequestHandler<string, string>(new RequestResponseConfig { Name = "MyRequestHandler", MillisecondsTimeout = 100 }, s => s);
+            }
+
+            _messageBroker.Received(2).SendMessageBusHandshake(Arg.Any<IEnumerable<Shared.Messages.SubscribeHandler>>(), Arg.Is<IEnumerable<Shared.Messages.RequestHandler>>(e => e.Count(r => r.Name == "MyRequestHandler") == 1), Arg.Any<CancellationToken>());
         }
 
         private IMessageBus CreateMessageBus()

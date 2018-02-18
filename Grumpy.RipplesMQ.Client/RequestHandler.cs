@@ -63,11 +63,13 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="responseType">Response Dto Type</param>
         /// <param name="multiThreaded">Multi Threaded Request Handler</param>
         /// <param name="handler">´Call back method for handling request</param>
-        public void Set(Type requestType, Type responseType, bool multiThreaded, Func<object, object> handler)
+        public RequestHandler Set(Type requestType, Type responseType, bool multiThreaded, Func<object, object> handler)
         {
             _handler = handler;
 
             Set(requestType, responseType, multiThreaded);
+
+            return this;
         }
 
         /// <summary>
@@ -77,11 +79,13 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="responseType">Response Dto Type</param>
         /// <param name="multiThreaded">Multi Threaded Request Handler</param>
         /// <param name="handler">´Call back method for handling request</param>
-        public void Set(Type requestType, Type responseType, bool multiThreaded, Func<object, CancellationToken, object> handler)
+        public RequestHandler Set(Type requestType, Type responseType, bool multiThreaded, Func<object, CancellationToken, object> handler)
         {
             _cancelableHandler = handler;
 
             Set(requestType, responseType, multiThreaded);
+
+            return this;
         }
 
         /// <summary>

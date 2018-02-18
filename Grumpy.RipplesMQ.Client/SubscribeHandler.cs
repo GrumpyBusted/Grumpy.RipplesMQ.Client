@@ -69,11 +69,13 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="messageType">Message type</param>
         /// <param name="multiThreaded">Is handler method Thread safe</param>
         /// <param name="handler">Call back method for handler</param>
-        public void Set(Type messageType, bool multiThreaded, Action<object> handler)
+        public SubscribeHandler Set(Type messageType, bool multiThreaded, Action<object> handler)
         {
             _handler = handler;
          
             Set(messageType, multiThreaded);
+
+            return this;
         }
 
         /// <summary>
@@ -82,11 +84,13 @@ namespace Grumpy.RipplesMQ.Client
         /// <param name="messageType">Message type</param>
         /// <param name="multiThreaded">Is handler method Thread safe</param>
         /// <param name="handler">Call back method for handler</param>
-        public void Set(Type messageType, bool multiThreaded, Action<object, CancellationToken> handler)
+        public SubscribeHandler Set(Type messageType, bool multiThreaded, Action<object, CancellationToken> handler)
         {
             _cancelableHandler = handler;
 
             Set(messageType, multiThreaded);
+
+            return this;
         }
 
         /// <summary>

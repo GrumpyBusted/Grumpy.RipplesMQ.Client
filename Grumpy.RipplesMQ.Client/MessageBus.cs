@@ -111,8 +111,8 @@ namespace Grumpy.RipplesMQ.Client
             {
                 _messageBroker.CheckMessageBrokerQueue();
 
-                var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler {Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, MessageType = s.MessageType.FullName});
-                var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler {Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName});
+                var subscribeHandlers = _subscribeHandlers.Select(s => new Shared.Messages.SubscribeHandler { Name = s.Name, QueueName = s.QueueName, Topic = s.Topic, Durable = s.Durable, MessageType = s.MessageType.FullName });
+                var requestHandlers = _requestHandlers.Select(s => new Shared.Messages.RequestHandler { Name = s.Name, QueueName = s.QueueName, RequestType = s.RequestType.FullName, ResponseType = s.ResponseType.FullName });
 
                 _messageBroker.SendMessageBusHandshake(subscribeHandlers, requestHandlers, _cancellationTokenSource.Token);
 
@@ -171,7 +171,10 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, (m, c) => handler((T)m, c));
+            var subscribeHandler = CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, (m, c) => handler((T)m, c));
+
+            if (_cancellationTokenSource != null)
+                StartSubscribeHandler(subscribeHandler);
         }
 
         /// <inheritdoc />
@@ -198,7 +201,10 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, m => handler((T)m));
+            var subscribeHandler = CreateSubscribeHandler(config, name, durable).Set(typeof(T), multiThreaded, m => handler((T)m));
+
+            if (_cancellationTokenSource != null)
+                StartSubscribeHandler(subscribeHandler);
         }
 
         /// <inheritdoc />
@@ -243,7 +249,10 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateRequestHandler(config).Set(typeof(TRequest), typeof(TResponse), multiThreaded, (m, c) => handler((TRequest)m, c));
+            var requestHandler = CreateRequestHandler(config).Set(typeof(TRequest), typeof(TResponse), multiThreaded, (m, c) => handler((TRequest)m, c));
+
+            if (_cancellationTokenSource != null)
+                StartRequestHandler(requestHandler);
         }
 
         /// <inheritdoc />
@@ -258,7 +267,24 @@ namespace Grumpy.RipplesMQ.Client
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
 
-            CreateRequestHandler(config).Set(typeof(TRequest), typeof(TResponse), multiThreaded, m => handler((TRequest)m));
+            var requestHandler = CreateRequestHandler(config).Set(typeof(TRequest), typeof(TResponse), multiThreaded, m => handler((TRequest)m));
+
+            if (_cancellationTokenSource != null)
+                StartRequestHandler(requestHandler);
+        }
+
+        private void StartRequestHandler(RequestHandler requestHandler)
+        {
+            requestHandler.Start(_cancellationTokenSource.Token, SyncMode);
+
+            SendHandshake();
+        }
+
+        private void StartSubscribeHandler(SubscribeHandler subscribeHandler)
+        {
+            subscribeHandler.Start(_cancellationTokenSource.Token, SyncMode);
+
+            SendHandshake();
         }
 
         /// <inheritdoc />
@@ -292,9 +318,6 @@ namespace Grumpy.RipplesMQ.Client
 
         private SubscribeHandler CreateSubscribeHandler(PublishSubscribeConfig config, string name, bool durable)
         {
-            if (_cancellationTokenSource != null)
-                throw new ArgumentException("Cannot add Handler after Start");
-
             ValidatePublishSubscribeConfig(config);
 
             if (name.NullOrWhiteSpace())
@@ -315,9 +338,6 @@ namespace Grumpy.RipplesMQ.Client
 
         private RequestHandler CreateRequestHandler(RequestResponseConfig config)
         {
-            if (_cancellationTokenSource != null)
-                throw new ArgumentException("Cannot add Handler after Start");
-
             ValidateRequestResponseConfig(config);
 
             var requestHandler = new RequestHandler(_logger, _messageBroker, _queueHandlerFactory, config.Name, _queueNameUtility);
