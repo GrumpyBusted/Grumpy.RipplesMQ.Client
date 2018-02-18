@@ -63,7 +63,6 @@ It is recommented to define the DTO and config class in the API Definition of yo
 ```csharp
 messageBus.Start(cancellationToken);
 ```
-_All setup must be done before start._
 
 #### Publish a Message for a Subscriber
 ```csharp
