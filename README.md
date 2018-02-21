@@ -20,7 +20,7 @@ Protocol for using RipplesMQ Client (The Message Bus):
 
 #### Create Message Bus
 ```csharp
-MessageBus messageBus = MessageBusBuilder.WithServiceName("MyService");
+MessageBus messageBus = new MessageBusBuilder().WithServiceName("MyService");
 ```
 _ServiceName is defaulted to name of current process._
 
