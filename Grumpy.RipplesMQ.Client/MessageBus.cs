@@ -30,7 +30,7 @@ namespace Grumpy.RipplesMQ.Client
         private TimerTask _handshakeTask;
         internal bool SyncMode = false;
         private readonly IQueueNameUtility _queueNameUtility;
-        private int _reconnectCount = 0;
+        private int _reconnectCount;
 
         /// <inheritdoc />
         public MessageBus(ILogger logger, IMessageBroker messageBroker, IQueueHandlerFactory queueHandlerFactory, IQueueNameUtility queueNameUtility)

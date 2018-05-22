@@ -14,27 +14,15 @@ namespace Grumpy.RipplesMQ.Client
     public class MessageBusBuilder
     {
         private readonly IProcessInformation _processInformation;
-        private string _serviceName;
+        public string ServiceName;
         private ILogger _logger;
 
         /// <inheritdoc />
         public MessageBusBuilder()
         {
             _processInformation = new ProcessInformation();
-            _serviceName = _processInformation.ProcessName;
+            ServiceName = _processInformation.ProcessName;
             _logger = NullLogger.Instance;
-        }
-
-        /// <summary>
-        /// Set Service Name
-        /// </summary>
-        /// <param name="serviceName">Service Name</param>
-        /// <returns></returns>
-        public MessageBusBuilder WithServiceName(string serviceName)
-        {
-            _serviceName = serviceName;
-
-            return this;
         }
 
         /// <summary>
@@ -57,7 +45,7 @@ namespace Grumpy.RipplesMQ.Client
         {
             var messageBusConfig = new MessageBusConfig
             {
-                ServiceName = _serviceName
+                ServiceName = ServiceName
             };
 
             var queueFactory = new QueueFactory(_logger);
@@ -77,5 +65,21 @@ namespace Grumpy.RipplesMQ.Client
         {
             return (MessageBus)messageBusBuilder.Build();
         }
+    }
+
+    public static class MessageBusBuilderExtensions
+    {
+        /// <summary>
+        /// Set Service Name
+        /// </summary>
+        /// <param name="serviceName">Service Name</param>
+        /// <returns></returns>
+        public static MessageBusBuilder WithServiceName(this MessageBusBuilder mbb, string serviceName)
+        {
+            mbb.ServiceName = serviceName;
+
+            return mbb;
+        }
+
     }
 }
