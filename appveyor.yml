@@ -33,3 +33,6 @@ after_build:
 artifacts:
   - path: '**\*.nupkg'
     name: NuGet
+deploy:
+  provider: Environment
+  name: NuGet
